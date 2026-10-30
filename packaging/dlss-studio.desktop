@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=DLSS Studio
+GenericName=Configurador DLSS para Linux
+Comment=Elige presets DLSS y copia parámetros para Steam
+Exec=dlss-studio
+Icon=dlss-studio
+Terminal=false
+Categories=Game;Utility;
+Keywords=DLSS;NVIDIA;Proton;Steam;
+StartupNotify=true
+StartupWMClass=dlss-studio

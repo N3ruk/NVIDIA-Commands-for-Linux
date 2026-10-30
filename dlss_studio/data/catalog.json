@@ -1,0 +1,1043 @@
+{
+  "version": 2,
+  "reviewed": "2026-10-29",
+  "sources": {
+    "drs": {
+      "title": "DXVK-NVAPI · Passing driver settings",
+      "url": "https://github.com/jp7677/dxvk-nvapi/wiki/Passing-driver-settings"
+    },
+    "sr": {
+      "title": "NVIDIA · DLSS Programming Guide",
+      "url": "https://github.com/NVIDIA/DLSS/blob/main/doc/DLSS_Programming_Guide_Release.pdf"
+    },
+    "sr45": {
+      "title": "NVIDIA · DLSS 4.5 Super Resolution",
+      "url": "https://www.nvidia.com/en-us/geforce/news/dlss-4-5-super-resolution-available-now/"
+    },
+    "dlss4": {
+      "title": "NVIDIA · DLSS 4 y modelos transformer",
+      "url": "https://www.nvidia.com/en-us/geforce/news/dlss4-multi-frame-generation-ai-innovations/"
+    },
+    "rr": {
+      "title": "NVIDIA Streamline · presets de Ray Reconstruction",
+      "url": "https://github.com/NVIDIAGameWorks/Streamline/blob/main/include/sl_dlss_d.h"
+    },
+    "rrguide": {
+      "title": "NVIDIA · Guía de integración RR",
+      "url": "https://github.com/NVIDIAGameWorks/Streamline/blob/main/docs/ProgrammingGuideDLSS_RR.md"
+    },
+    "fg": {
+      "title": "NVIDIA · Guía Frame Generation",
+      "url": "https://github.com/NVIDIAGameWorks/Streamline/blob/main/docs/ProgrammingGuideDLSS_G.md"
+    },
+    "hardware": {
+      "title": "NVIDIA · Tecnologías y compatibilidad DLSS",
+      "url": "https://www.nvidia.com/en-us/geforce/technologies/dlss/"
+    }
+  },
+  "technologies": {
+    "sr": {
+      "title": "Super Resolution / DLAA",
+      "minimum": "GeForce RTX 20 o superior",
+      "presets": [
+        {
+          "id": "game",
+          "title": "Controlado por el juego",
+          "generation": "Sin override",
+          "description": "No solicita un modelo distinto. El juego y sus componentes deciden el preset.",
+          "recommendation": "Para comparar con el comportamiento original. No borra variables de tu comando previo.",
+          "cost": "El del modelo que elija el juego.",
+          "sources": [
+            "drs"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "Generación del juego · sin fijar"
+        },
+        {
+          "id": "latest",
+          "title": "Recomendado por NVIDIA · automático",
+          "generation": "Depende del componente NGX",
+          "description": "Delega la elección al controlador y a NGX; no fija una letra. En SR, desde DLSS 4.5, «latest» significa recomendado: K para DLAA/Calidad/Equilibrado, M para Rendimiento y L para Ultra rendimiento. No asumas esa misma correspondencia en RR/FG.",
+          "recommendation": "Si prefieres seguir la política automática compatible de NVIDIA.",
+          "cost": "Variable: puede seleccionar un modelo más costoso.",
+          "sources": [
+            "drs",
+            "sr45"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "Automático · generación variable"
+        },
+        {
+          "id": "K",
+          "title": "K · Transformer",
+          "generation": "DLSS 4.0 · Super Resolution / DLAA · Transformer",
+          "description": "Modelo transformer de primera generación. La guía lo recomienda generalmente frente a J y lo usa como predeterminado para DLAA, Calidad y Equilibrado.",
+          "recommendation": "Buen punto de partida en RTX 20/30 y referencia para comparar con L/M.",
+          "cost": "Menor coste que L; mide FPS y estabilidad temporal en tu juego.",
+          "sources": [
+            "sr",
+            "sr45"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4.0"
+        },
+        {
+          "id": "L",
+          "title": "L · Transformer de 2.ª generación",
+          "generation": "DLSS 4.5 · Super Resolution",
+          "description": "Modelo destinado a Ultra rendimiento, especialmente a salida 4K. Busca una imagen más nítida y estable y menos ghosting que J/K.",
+          "recommendation": "Ultra rendimiento a 4K, si compensa su mayor coste. No es una mejora gratuita en una RTX 2060.",
+          "cost": "Alto, especialmente en RTX 20/30 sin FP8 nativo.",
+          "sources": [
+            "sr",
+            "sr45"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4.5"
+        },
+        {
+          "id": "M",
+          "title": "M · Transformer de 2.ª generación",
+          "generation": "DLSS 4.5 · Super Resolution",
+          "description": "Modelo optimizado para Rendimiento. La guía describe mejoras de imagen similares a L con una velocidad más cercana a J/K.",
+          "recommendation": "Modo Rendimiento. En RTX 20/30 compara siempre con K antes de mantenerlo.",
+          "cost": "Mayor impacto en RTX 20/30; no garantiza más FPS.",
+          "sources": [
+            "sr",
+            "sr45"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4.5"
+        },
+        {
+          "id": "J",
+          "title": "J · Transformer alternativo",
+          "generation": "DLSS 4.0 · Super Resolution / DLAA · Transformer",
+          "description": "Similar a K: puede mostrar algo menos de ghosting a cambio de más parpadeo. NVIDIA recomienda generalmente K.",
+          "recommendation": "Comparaciones específicas de estelas y parpadeo, no como opción universal.",
+          "cost": "Depende del juego y del componente NGX.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4.0"
+        },
+        {
+          "id": "A",
+          "title": "A · modelo histórico",
+          "generation": "DLSS 2.x / 3.x · familia CNN; la letra no fija una versión exacta",
+          "description": "Preset histórico de Super Resolution. En la documentación actual A–D ya no están disponibles y E/F figuran como heredados con soporte deprecado. La letra no equivale a una versión comercial exacta de DLSS.",
+          "recommendation": "Consulta histórica; no se recomienda para una configuración moderna.",
+          "cost": "No se compara sin probar una versión concreta de la DLL.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "DLSS 2.x / 3.x · CNN heredado"
+        },
+        {
+          "id": "B",
+          "title": "B · modelo histórico",
+          "generation": "DLSS 2.x / 3.x · familia CNN; la letra no fija una versión exacta",
+          "description": "Preset histórico de Super Resolution. En la documentación actual A–D ya no están disponibles y E/F figuran como heredados con soporte deprecado. La letra no equivale a una versión comercial exacta de DLSS.",
+          "recommendation": "Consulta histórica; no se recomienda para una configuración moderna.",
+          "cost": "No se compara sin probar una versión concreta de la DLL.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "DLSS 2.x / 3.x · CNN heredado"
+        },
+        {
+          "id": "C",
+          "title": "C · modelo histórico",
+          "generation": "DLSS 2.x / 3.x · familia CNN; la letra no fija una versión exacta",
+          "description": "Preset histórico de Super Resolution. En la documentación actual A–D ya no están disponibles y E/F figuran como heredados con soporte deprecado. La letra no equivale a una versión comercial exacta de DLSS.",
+          "recommendation": "Consulta histórica; no se recomienda para una configuración moderna.",
+          "cost": "No se compara sin probar una versión concreta de la DLL.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "DLSS 2.x / 3.x · CNN heredado"
+        },
+        {
+          "id": "D",
+          "title": "D · modelo histórico",
+          "generation": "DLSS 2.x / 3.x · familia CNN; la letra no fija una versión exacta",
+          "description": "Preset histórico de Super Resolution. En la documentación actual A–D ya no están disponibles y E/F figuran como heredados con soporte deprecado. La letra no equivale a una versión comercial exacta de DLSS.",
+          "recommendation": "Consulta histórica; no se recomienda para una configuración moderna.",
+          "cost": "No se compara sin probar una versión concreta de la DLL.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "DLSS 2.x / 3.x · CNN heredado"
+        },
+        {
+          "id": "E",
+          "title": "E · modelo histórico",
+          "generation": "DLSS 2.x / 3.x · familia CNN; la letra no fija una versión exacta",
+          "description": "Preset histórico de Super Resolution. En la documentación actual A–D ya no están disponibles y E/F figuran como heredados con soporte deprecado. La letra no equivale a una versión comercial exacta de DLSS.",
+          "recommendation": "Consulta histórica; no se recomienda para una configuración moderna.",
+          "cost": "No se compara sin probar una versión concreta de la DLL.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Heredado / deprecado",
+          "advanced": true,
+          "generatable": true,
+          "generation_label": "DLSS 2.x / 3.x · CNN heredado"
+        },
+        {
+          "id": "F",
+          "title": "F · modelo histórico",
+          "generation": "DLSS 2.x / 3.x · familia CNN; la letra no fija una versión exacta",
+          "description": "Preset histórico de Super Resolution. En la documentación actual A–D ya no están disponibles y E/F figuran como heredados con soporte deprecado. La letra no equivale a una versión comercial exacta de DLSS.",
+          "recommendation": "Consulta histórica; no se recomienda para una configuración moderna.",
+          "cost": "No se compara sin probar una versión concreta de la DLL.",
+          "sources": [
+            "sr"
+          ],
+          "status": "Heredado / deprecado",
+          "advanced": true,
+          "generatable": true,
+          "generation_label": "DLSS 2.x / 3.x · CNN heredado"
+        },
+        {
+          "id": "G",
+          "title": "G · reservado / sin modelo documentado",
+          "generation": "Sin correspondencia fiable",
+          "description": "DXVK-NVAPI reconoce esta letra, pero eso no acredita un modelo utilizable. G/H/I revierten al comportamiento predeterminado en la guía; N/O no tienen una descripción de modelo revisada en este catálogo.",
+          "recommendation": "No forzarlo. Usa K, L, M, J o la selección automática.",
+          "cost": "No documentado.",
+          "sources": [
+            "sr",
+            "drs"
+          ],
+          "status": "Reservado / no documentado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "H",
+          "title": "H · reservado / sin modelo documentado",
+          "generation": "Sin correspondencia fiable",
+          "description": "DXVK-NVAPI reconoce esta letra, pero eso no acredita un modelo utilizable. G/H/I revierten al comportamiento predeterminado en la guía; N/O no tienen una descripción de modelo revisada en este catálogo.",
+          "recommendation": "No forzarlo. Usa K, L, M, J o la selección automática.",
+          "cost": "No documentado.",
+          "sources": [
+            "sr",
+            "drs"
+          ],
+          "status": "Reservado / no documentado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "I",
+          "title": "I · reservado / sin modelo documentado",
+          "generation": "Sin correspondencia fiable",
+          "description": "DXVK-NVAPI reconoce esta letra, pero eso no acredita un modelo utilizable. G/H/I revierten al comportamiento predeterminado en la guía; N/O no tienen una descripción de modelo revisada en este catálogo.",
+          "recommendation": "No forzarlo. Usa K, L, M, J o la selección automática.",
+          "cost": "No documentado.",
+          "sources": [
+            "sr",
+            "drs"
+          ],
+          "status": "Reservado / no documentado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "N",
+          "title": "N · reservado / sin modelo documentado",
+          "generation": "Sin correspondencia fiable",
+          "description": "DXVK-NVAPI reconoce esta letra, pero eso no acredita un modelo utilizable. G/H/I revierten al comportamiento predeterminado en la guía; N/O no tienen una descripción de modelo revisada en este catálogo.",
+          "recommendation": "No forzarlo. Usa K, L, M, J o la selección automática.",
+          "cost": "No documentado.",
+          "sources": [
+            "sr",
+            "drs"
+          ],
+          "status": "Reservado / no documentado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "O",
+          "title": "O · reservado / sin modelo documentado",
+          "generation": "Sin correspondencia fiable",
+          "description": "DXVK-NVAPI reconoce esta letra, pero eso no acredita un modelo utilizable. G/H/I revierten al comportamiento predeterminado en la guía; N/O no tienen una descripción de modelo revisada en este catálogo.",
+          "recommendation": "No forzarlo. Usa K, L, M, J o la selección automática.",
+          "cost": "No documentado.",
+          "sources": [
+            "sr",
+            "drs"
+          ],
+          "status": "Reservado / no documentado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        }
+      ]
+    },
+    "rr": {
+      "title": "Ray Reconstruction",
+      "minimum": "GeForce RTX 20 o superior · juego con RR",
+      "presets": [
+        {
+          "id": "game",
+          "title": "Controlado por el juego",
+          "generation": "Sin override",
+          "description": "No solicita un modelo distinto. El juego y sus componentes deciden el preset.",
+          "recommendation": "Para comparar con el comportamiento original. No borra variables de tu comando previo.",
+          "cost": "El del modelo que elija el juego.",
+          "sources": [
+            "drs"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "Generación del juego · sin fijar"
+        },
+        {
+          "id": "latest",
+          "title": "Recomendado por NVIDIA · automático",
+          "generation": "Depende del componente NGX",
+          "description": "Delega la elección al controlador y a NGX; no fija una letra. En SR, desde DLSS 4.5, «latest» significa recomendado: K para DLAA/Calidad/Equilibrado, M para Rendimiento y L para Ultra rendimiento. No asumas esa misma correspondencia en RR/FG.",
+          "recommendation": "Si prefieres seguir la política automática compatible de NVIDIA.",
+          "cost": "Variable: puede seleccionar un modelo más costoso.",
+          "sources": [
+            "drs",
+            "sr45"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "Automático · generación variable"
+        },
+        {
+          "id": "D",
+          "title": "D · Transformer RR",
+          "generation": "Familia transformer de DLSS 4.0 o posterior · versión exacta de D/E/F no publicada",
+          "description": "Modelo transformer documentado. Las letras de RR son independientes de las de SR. No se atribuye una generación comercial exacta por letra sin documentación explícita.",
+          "recommendation": "Juegos con RR integrado y trazado de rayos activado. Compara en reflejos, iluminación en movimiento y detalles finos.",
+          "cost": "Depende mucho del trazado de rayos; en RTX 2060 puede ser considerable.",
+          "sources": [
+            "rr",
+            "rrguide",
+            "dlss4"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4+ · Transformer RR"
+        },
+        {
+          "id": "E",
+          "title": "E · Transformer RR",
+          "generation": "Familia transformer de DLSS 4.0 o posterior · versión exacta de D/E/F no publicada",
+          "description": "Modelo transformer documentado; el encabezado no detalla ventajas frente a D. Las letras de RR son independientes de las de SR. No se atribuye una generación comercial exacta por letra sin documentación explícita.",
+          "recommendation": "Juegos con RR integrado y trazado de rayos activado. Compara en reflejos, iluminación en movimiento y detalles finos.",
+          "cost": "Depende mucho del trazado de rayos; en RTX 2060 puede ser considerable.",
+          "sources": [
+            "rr",
+            "rrguide",
+            "dlss4"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4+ · Transformer RR"
+        },
+        {
+          "id": "F",
+          "title": "F · Transformer RR",
+          "generation": "Familia transformer de DLSS 4.0 o posterior · versión exacta de D/E/F no publicada",
+          "description": "Modelo transformer señalado como el más reciente y predeterminado en el encabezado revisado. Las letras de RR son independientes de las de SR. No se atribuye una generación comercial exacta por letra sin documentación explícita.",
+          "recommendation": "Juegos con RR integrado y trazado de rayos activado. Compara en reflejos, iluminación en movimiento y detalles finos.",
+          "cost": "Depende mucho del trazado de rayos; en RTX 2060 puede ser considerable.",
+          "sources": [
+            "rr",
+            "rrguide",
+            "dlss4"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "DLSS 4+ · Transformer RR"
+        },
+        {
+          "id": "A",
+          "title": "A · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "B",
+          "title": "B · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "C",
+          "title": "C · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Retirado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "G",
+          "title": "G · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "H",
+          "title": "H · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "I",
+          "title": "I · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "J",
+          "title": "J · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "K",
+          "title": "K · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "L",
+          "title": "L · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "M",
+          "title": "M · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "N",
+          "title": "N · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "O",
+          "title": "O · retirado / vuelve al predeterminado",
+          "generation": "Sin modelo seleccionable recomendado",
+          "description": "A/B/C están retirados. El encabezado de NVIDIA indica que G–O revierten al modelo predeterminado; no corresponden a los presets SR de la misma letra.",
+          "recommendation": "Usa D/E/F o automático.",
+          "cost": "No procede.",
+          "sources": [
+            "rr",
+            "rrguide"
+          ],
+          "status": "Vuelve al predeterminado",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        }
+      ]
+    },
+    "fg": {
+      "title": "Frame Generation",
+      "minimum": "RTX 40: FG 2× · RTX 50: MFG hasta 6× y dinámico",
+      "presets": [
+        {
+          "id": "game",
+          "title": "Controlado por el juego",
+          "generation": "Sin override",
+          "description": "No solicita un modelo distinto. El juego y sus componentes deciden el preset.",
+          "recommendation": "Para comparar con el comportamiento original. No borra variables de tu comando previo.",
+          "cost": "El del modelo que elija el juego.",
+          "sources": [
+            "drs"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "Generación del juego · sin fijar"
+        },
+        {
+          "id": "latest",
+          "title": "Recomendado por NVIDIA · automático",
+          "generation": "Depende del componente NGX",
+          "description": "Delega la elección al controlador y a NGX; no fija una letra. En SR, desde DLSS 4.5, «latest» significa recomendado: K para DLAA/Calidad/Equilibrado, M para Rendimiento y L para Ultra rendimiento. No asumas esa misma correspondencia en RR/FG.",
+          "recommendation": "Si prefieres seguir la política automática compatible de NVIDIA.",
+          "cost": "Variable: puede seleccionar un modelo más costoso.",
+          "sources": [
+            "drs",
+            "sr45"
+          ],
+          "status": "Documentado",
+          "advanced": false,
+          "generatable": true,
+          "generation_label": "Automático · generación variable"
+        },
+        {
+          "id": "B",
+          "title": "B · override documentado en DXVK-NVAPI",
+          "generation": "Frame Generation · generación exacta no atribuida",
+          "description": "La wiki usa B como ejemplo válido de preset FG. No describe su ventaja visual ni permite asignarle una versión comercial exacta. No confundir con B de SR/RR.",
+          "recommendation": "Pruebas avanzadas en RTX 40/50. Para uso normal, automático y el modo del juego.",
+          "cost": "Depende del juego; los fotogramas generados no reducen por sí solos la latencia base.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sintaxis documentada; comportamiento no detallado",
+          "advanced": true,
+          "generatable": true,
+          "generation_label": "FG · versión exacta no publicada"
+        },
+        {
+          "id": "A",
+          "title": "A · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "C",
+          "title": "C · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "D",
+          "title": "D · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "E",
+          "title": "E · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "F",
+          "title": "F · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "G",
+          "title": "G · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "H",
+          "title": "H · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "I",
+          "title": "I · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "J",
+          "title": "J · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "K",
+          "title": "K · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "L",
+          "title": "L · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "M",
+          "title": "M · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "N",
+          "title": "N · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "O",
+          "title": "O · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "P",
+          "title": "P · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "Q",
+          "title": "Q · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "R",
+          "title": "R · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "S",
+          "title": "S · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "T",
+          "title": "T · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "U",
+          "title": "U · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "V",
+          "title": "V · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "W",
+          "title": "W · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "X",
+          "title": "X · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "Y",
+          "title": "Y · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        },
+        {
+          "id": "Z",
+          "title": "Z · sin descripción pública revisada",
+          "generation": "Generación no atribuida",
+          "description": "DXVK-NVAPI admite el identificador, pero el catálogo no tiene una descripción fiable de su comportamiento. No se inventan recomendaciones ni equivalencias.",
+          "recommendation": "No forzarlo. Usa automático o controlado por el juego.",
+          "cost": "No documentado.",
+          "sources": [
+            "drs",
+            "fg"
+          ],
+          "status": "Sin descripción verificada",
+          "advanced": true,
+          "generatable": false,
+          "generation_label": "Sin generación atribuible"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "passing-driver-settings.md": {
+    "sha256": "d47db0e3884dc115d539fb12cf1dda74b39c73717ff832701146989210408f2c",
+    "reviewed": "2026-10-29"
+  },
+  "streamline-dlss-sr.md": {
+    "sha256": "3153a3efdc3e637df2fdb4d5f6ba69f90f03f5d2c5e7dda28f46c980b817db9e",
+    "reviewed": "2026-10-29"
+  },
+  "streamline-dlss-rr.md": {
+    "sha256": "8c7b001ed95887a1c59f7a04dfbf99c09cc438fb417c54675b178c43d4eafca3",
+    "reviewed": "2026-10-29"
+  },
+  "streamline-dlss-fg.md": {
+    "sha256": "5e323485c64e7142c5622c7771644c268f7a366b379f4d276e99b426ebee5282",
+    "reviewed": "2026-10-29"
+  },
+  "streamline-rr-presets.h": {
+    "sha256": "6e51cf9815301c597d0657970a668147e34a20db5a76d0af254ec11248f5c4fe",
+    "reviewed": "2026-10-29"
+  },
+  "nvidia-sr-presets-excerpt.txt": {
+    "sha256": "9181304cb4c5b12f2caae198ed0a51b58575a3b764b7439652fe9893995628aa",
+    "reviewed": "2026-10-29",
+    "source": "https://github.com/NVIDIA/DLSS/blob/main/doc/DLSS_Programming_Guide_Release.pdf"
+  }
+}

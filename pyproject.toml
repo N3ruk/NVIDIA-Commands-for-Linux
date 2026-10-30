@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dlss-studio"
+version = "1.0.0"
+description = "Configurador local DLSS para Steam / Linux / Proton"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+pyside = ["PySide6>=6.6,<7"]
+pyqt = ["PyQt6>=6.6,<7"]
+
+[project.scripts]
+dlss-studio = "dlss_studio.ui:main"
+
+[tool.setuptools]
+packages = ["dlss_studio"]
+
+[tool.setuptools.package-data]
+dlss_studio = ["data/*.json", "assets/*.svg", "assets/*.png"]

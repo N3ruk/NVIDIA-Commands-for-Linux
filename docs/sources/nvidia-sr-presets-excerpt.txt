@@ -1,0 +1,74 @@
+eset.Performance"
+#define NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance
+"DLSS.Hint.Render.Preset.UltraPerformance"
+
+
+
+
+DLSS defaults and presets are subject to change with new versions of DLSS. Note that
+NVSDK_NGX_DLSS_Hint_Render_Preset_DLAA will work only when the input and output render
+sizes are set to the same value as described above.
+
+Presets are subject to change with each revision but the following serves as a general guide for
+experimentations with the current presets:
+
+-   Preset F (intended for Ultra Perf/DLAA modes): Will be deprecated in the next SDK cycle and should
+    not be used.
+-   Preset G (Unused): Do not use – reverts to default behavior
+-   Preset H (reserved): Do not use – reverts to default behavior
+-   Preset I (reserved): Do not use – reverts to default behavior
+-   Preset J: Similar to preset K. Preset J might exhibit slightly less ghosting at the cost of extra flickering.
+    Preset K is generally recommended over preset J
+-   Preset K: Default preset for DLAA/Balanced/Quality modes. Less expensive performance wise
+    compared to Preset L.
+-   Preset L: Default preset for UltraPerformance mode. Delivers a sharper, more stable image with less
+    ghosting than Preset J, K but are more expensive performance wise. Preset L is peak performant on
+    RTX 40 series GPUs and above.
+-   Preset M: Default preset for Performance mode. Delivers similar image quality improvements as
+    Preset L but closer in speed to Presets J, K. Preset M is peak performant on RTX 40 series GPUs and
+    above.
+
+3.12.1 Preset Selection Behavior with OTA updates
+This section describes how OTA updates discussed in (section 2.4) affect Application preset selection
+
+    •   Titles that opt-in for OTA updates, and have selected a specific model, will keep that model
+        going forward.
+    •   In the case that the update offers a different underlying default preset that the one originally
+        integrated - Titles that opt-in for OTA updates, and are using the default model, may have the
+        default model changed on them as part of the OTA update.
+
+
+3.13 Scene Transitions
+DLSS is built around spatio-temporal reconstruction techniques and leverages temporal information
+gathered from previous frames. The algorithm can be confused if there is a complete (or significant)
+change in the scene from frame to frame. This can result in visual artifacts such as lagged transitions or
+“ghost images” from the previous scene carrying over to the new scene.
+
+
+
+NVIDIA DLSS | 31 March 2026                                                                        Page | 29
+To avoid these artifacts, during the DLSS Evaluation call for the first frame after a major transition, set
+the InReset parameter from the DLSS_Eval parameter list to a non-zero value. This instructs DLSS to
+void its internal temporal component and restart its processing with the incoming inputs.
+
+NOTE: Improper use of this can result in temporal flickering, heavy aliasing or other visual artifacts.
+
+
+3.14 VRAM Usage
+Modern rendering engines often track VRAM usage and modify rendering parameters and art assets
+based on occupancy. To assist with this tracking, DLSS offers a NVSDK_NGX_DLSS_GetStatsCallback()
+function which can be used to query the amount of VRAM currently allocated internally by DLSS. Most
+convenient way of using the function is by using NGX_DLSS_GET_STATS() inline helper.
+
+Note that the amount of memory that the function returns is a global variable. Therefore, if you created
+multiple DLSS instances, the function returns TOTAL amount of memory currently used by all instances.
+It also includes any memory that DLSS may cache internally. Therefore, even if you released all DLSS
+instances, you may still see non-zero value of allocated memory. All cached memory gets released when
+Shutdown() is called though.
+
+Also Note that, by default, when you call ReleaseFeature(), the memory used by the feature isn’t
+released – it's being cached internally for such case when you will immediately re-create feature again –
+this memory would then be reused. However, DLSS supports a hint
+NVSDK_NGX_Parameter_FreeMemOnReleaseFeature which will force memory release on each
+ReleaseFeature() call. This hint can be set as follows:
+NVSDK_NGX_Parameter_SetI(ngxPara
