@@ -1,39 +1,31 @@
-# Construir y verificar Linux
+# Build and verify Linux packages
 
-## Paquetes de la versión 1.0.0
+[Español](es/BUILD.md) · [Home](../README.md)
 
-- `DLSS-Studio-1.0.0-x86_64.AppImage`: portable, Python y Qt incluidos.
-- `dlss-studio_1.0.0_amd64.deb`: instalación autónoma en `/opt/dlss-studio`.
-- `SHA256SUMS`: huellas de ambos paquetes.
-- `build-info.json`: versiones del constructor y requisitos del sistema.
+## Release 1.0.0 packages
 
-Arquitectura **x86_64/amd64**, GNU/Linux con **glibc 2.35 o posterior**:
-Ubuntu 22.04+, Debian 12+, Linux Mint 21+ y otras distribuciones compatibles.
-No funciona de forma nativa en ARM, Linux de 32 bits ni Alpine/musl.
-El DEB solo es para distribuciones que utilicen ese formato.
+- `DLSS-Studio-1.0.0-x86_64.AppImage`: portable, Python and Qt included.
+- `dlss-studio_1.0.0_amd64.deb`: self-contained installation under `/opt/dlss-studio`.
+- `SHA256SUMS`: package hashes.
+- `build-info.json`: builder versions and system requirements.
 
-Se incluyen el intérprete Python, PySide6/Qt, las bibliotecas gráficas auxiliares,
-fuentes y licencias. No se ejecuta pip ni se descargan componentes al instalar.
-No se incluyen glibc, el kernel, la sesión gráfica, controladores NVIDIA,
-Steam ni Proton. Esos componentes pertenecen al sistema o al juego.
-La detección real necesita `nvidia-smi` del controlador del sistema.
+Targets x86_64/amd64 GNU/Linux with **glibc 2.35+**, including Ubuntu 22.04+, Debian 12+ and Linux Mint 21+. Not native ARM, 32-bit or Alpine/musl. DEB requires a DEB-compatible distribution.
 
-## Desde un Linux moderno, sin sudo
+Includes Python, PySide6/Qt, desktop support libraries, fonts and licenses. Installation does not run pip or download components. glibc, kernel, desktop, NVIDIA driver, Steam and Proton remain system/game components. Real GPU detection needs the system driver's `nvidia-smi`.
 
-Necesitas `bwrap`, `tar`, Python 3 y acceso a Internet en la máquina de construcción:
+## From a modern Linux host, without sudo
+
+Requires `bwrap`, `tar`, Python 3 and Internet:
 
 ```sh
 python3 tools/build_rootless.py
 ```
 
-Descarga Ubuntu Base 22.04.5, verifica SHA256 y construye en un user namespace.
-El UID 0 solo existe dentro del entorno aislado: no obtiene privilegios del host.
-Todo se conserva en `build/portable`; los paquetes terminados aparecen en `dist`.
+Downloads and SHA256-verifies Ubuntu Base 22.04.5 and builds inside a user namespace. UID 0 exists only inside that environment; it has no host privileges. Work stays under `build/portable`, outputs under `dist`.
 
-## En Ubuntu 22.04 o un contenedor equivalente
+## On Ubuntu 22.04 or an equivalent container
 
-Instala los paquetes de construcción indicados en `PACKAGES` de
-`tools/build_rootless.py` y después:
+Install the build packages listed in `PACKAGES` in `tools/build_rootless.py`, then:
 
 ```sh
 python3 -m venv .venv-build
@@ -42,13 +34,9 @@ QT_QPA_PLATFORM=offscreen .venv-build/bin/python -m unittest discover -s tests -
 QT_QPA_PLATFORM=offscreen .venv-build/bin/python tools/build_linux.py
 ```
 
-El runtime AppImage está fijado por SHA256. Si cambia la descarga `continuous`,
-la construcción se detiene hasta revisar y actualizar explícitamente su hash.
-Las versiones principales de Python/Qt/freezer se guardan en `build-info.json`;
-los repositorios apt y dependencias transitivas pueden evolucionar. No se promete
-que dos compilaciones diferentes sean idénticas byte a byte.
+The AppImage runtime is SHA256-pinned. Changes to the `continuous` download stop the build until the hash is reviewed and explicitly updated. Major Python/Qt/freezer versions are recorded in `build-info.json`; APT repositories/transitive dependencies may evolve. Builds on different dates are not promised to be byte-identical.
 
-## Comprobaciones
+## Checks
 
 ```sh
 QT_QPA_PLATFORM=offscreen ./dist/DLSS-Studio-1.0.0-x86_64.AppImage --self-test
@@ -56,16 +44,10 @@ QT_QPA_PLATFORM=offscreen ./dist/DLSS-Studio-1.0.0-x86_64.AppImage --self-test
 (cd dist && sha256sum -c SHA256SUMS)
 ```
 
-La autocomprobación usa una GPU simulada únicamente para probar presets y
-portapapeles: no certifica la GPU real ni un modelo cargado dentro de un juego.
-Para comprobar detección real e interfaz:
+The self-test uses a simulated GPU to check presets and clipboard only; it does not certify real hardware or an in-game model. For real detection and a screenshot:
 
 ```sh
 ./dist/DLSS-Studio-1.0.0-x86_64.AppImage --screenshot artifacts/preview.png
 ```
 
-Si FUSE no está disponible, el runtime admite `--appimage-extract-and-run`.
-Para pruebas offline del DEB, se puede instalar dentro de otro Ubuntu Base limpio
-y ejecutar `QT_QPA_PLATFORM=offscreen dlss-studio --self-test` sin instalar Python/Qt.
-Los plugins X11 y Wayland están incluidos; el adaptador de apariencia GTK no es
-necesario porque la app usa su propio estilo Fusion y no se distribuye.
+Without FUSE, add `--appimage-extract-and-run`. Offline DEB testing can use another clean Ubuntu Base with `QT_QPA_PLATFORM=offscreen dlss-studio --self-test`, without installing Python/Qt. X11 and Wayland plugins are included; the GTK appearance adapter is omitted because the application uses its own Fusion style.
