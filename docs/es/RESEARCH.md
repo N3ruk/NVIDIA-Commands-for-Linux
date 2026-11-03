@@ -15,13 +15,13 @@ GPU de referencia: **GeForce RTX 5070 / Blackwell / RTX 50**. Una GPU compatible
 | Baja latencia y FPS | Alternativa `latencySleep` DXVK; limitadores DXVK/VKD3D, no sustitutos universales de NVIDIA ULL |
 | VSync, anisotropía, LOD | Según API: DXVK/OpenGL; LOD solo DXVK. No se envían ajustes DXVK a DX12/Vulkan directo |
 | Nitidez | Filtro OpenGL/Vulkan documentado en R595, intensidad y reducción de grano; no activa escalado NIS |
-| NIS/FSR y supersampling | Alternativas opcionales Gamescope para Steam; no son DLDSR/DSR del driver ni escalado temporal |
+| NIS/FSR y supersampling | Fuera del generador; Gamescope ofrece alternativas separadas, no DLDSR/DSR del driver ni escalado temporal |
 | AA | Permiso FXAA OpenGL para un perfil ya configurado. No se finge un forzado universal de MSAA/MFAA/AA temporal |
 | Caché/multihilo | Variables del driver OpenGL; sin borrar cachés ni cambiar la precaché Steam |
-| HDR | Señalización de HDR nativo en DXVK; necesita juego/pantalla/compositor. **No es RTX HDR ni conversión SDR→HDR** |
+| HDR | Fuera del generador; configuración externa de juego/runtime/pantalla/compositor. **No es RTX HDR ni conversión SDR→HDR** |
 | G-SYNC/VRR | Permiso OpenGL; la pantalla y sesión deben estar configuradas previamente |
-| Indicadores/estadísticas | DXVK HUD, MangoHud externo, indicador del driver e indicadores DLSS. No incluyen Reflex Analyzer |
-| GPU híbrida | PRIME opcional y detección real; sin simular GPU en la interfaz |
+| Indicadores/estadísticas | Indicador del driver e indicadores DLSS. DXVK HUD/MangoHud quedan fuera de la interfaz; no incluye Reflex Analyzer |
+| GPU híbrida | Detección real; sin simular GPU. PRIME es una configuración externa, no un control de la interfaz |
 | Freestyle, RTX Dynamic Vibrance, RTX HDR, Ansel | Sin una ruta equivalente verificada para comandos Linux; no se ofrecen como si existiera |
 | Optimización automática por juego | No se dispone de los perfiles/servicio de NVIDIA App; no se inventan ajustes óptimos |
 | Drivers, overclock, voltajes, ventiladores y potencia | Tareas de sistema o herramientas separadas con restricciones; no variables de lanzamiento. Sin acciones globales/privilegiadas |

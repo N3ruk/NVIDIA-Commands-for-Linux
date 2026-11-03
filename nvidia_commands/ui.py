@@ -6,7 +6,8 @@ from pathlib import Path
 from . import __version__
 from .qt import *
 from .core import (CATALOG, RESOURCES, MODES, Hardware, Config, Selection,
-                   detect_hardware, compatible, generate, preset, smooth_driver_supported)
+                   detect_hardware, compatible, generate, preset, smooth_driver_supported, epic_arguments)
+from .explanations import explain_result
 
 STYLE = """
 * { font-family: 'Inter', 'Noto Sans', sans-serif; font-size: 13px; }
@@ -252,20 +253,10 @@ class LinuxPanel(QWidget):
              "Puede afectar pases que requieren filtrado bilineal; no se aplica a DX12/Vulkan directo."),
             ("lod_bias", "Detalle de texturas (LOD bias) · DXVK", [("game","Controlado por el juego")]+[(x,x) for x in ("-2.0","-1.0","-0.5","0.0","0.5","1.0")],
              "Valores negativos aumentan detalle y parpadeo; positivos reducen detalle. No es un filtro Freestyle."),
-            ("hdr", "Señalizar HDR nativo · DXVK", None,
-             "Necesita juego y cadena HDR completa: monitor, compositor y configuración. NO convierte SDR a HDR."),
-            ("hud", "Estadísticas de rendimiento", [("game","Sin override"),("dxvk","DXVK HUD · sin dependencia extra"),("mangohud","MangoHud · requiere instalación")],
-             "FPS, tiempos de frame y métricas. No incluye grabación ni Reflex Analyzer."),
             ("api_osd", "Indicador gráfico NVIDIA · OpenGL / Vulkan", None,
              "Muestra API, FPS y presentación. No es el indicador del modelo DLSS."),
             ("indicator", "Indicadores DLSS · Proton / Vulkan nativo", choices,
              "Proton: persisten en el registro Wine; ejecuta Desactivar una vez. Vulkan nativo: indicador temporal de SR."),
-            ("prime", "Usar GPU NVIDIA · PRIME render offload", None,
-             "Solo para equipos híbridos configurados. No instala ni configura los controladores."),
-            ("gamescope", "Escalado externo · Gamescope · Steam", [("game","Sin wrapper"),("nis","NVIDIA Image Scaling · espacial"),("fsr","AMD FSR 1 · espacial"),("supersample","Supersampling · no DLDSR")],
-             "Necesita Gamescope instalado y NVIDIA DRM modeset. No es el NIS/DSR del panel Windows."),
-            ("scaling_size", "Resolución interna → salida · Gamescope", [("720-1080","1280×720 → 1920×1080"),("1080-1440","1920×1080 → 2560×1440"),("1080-4k","1920×1080 → 3840×2160"),("1440-4k","2560×1440 → 3840×2160"),("4k-1080","3840×2160 → 1920×1080"),("4k-1440","3840×2160 → 2560×1440")],
-             "NIS/FSR: interna menor que salida. Supersampling: interna mayor que salida. Ajusta la resolución del juego."),
             ("gl_vrr", "Permitir G-SYNC / VRR · OpenGL", choices,
              "Necesita pantalla y sesión VRR configuradas. No activa G-SYNC en el compositor."),
             ("gl_threaded", "Optimizaciones multihilo · OpenGL", choices,
@@ -316,13 +307,12 @@ class LinuxPanel(QWidget):
                   "reflex": cfg.api == "vulkan", "low_latency": cfg.api == "dxvk",
                   "fps": cfg.api in ("dxvk", "dx12"), "vsync": cfg.api in ("dxvk", "opengl"),
                   "anisotropy": cfg.api in ("dxvk", "opengl"), "lod_bias": cfg.api == "dxvk",
-                  "hdr": cfg.api == "dxvk", "indicator": cfg.api != "opengl",
-                  "gamescope": cfg.launcher == "steam", "scaling_size": cfg.launcher == "steam"}
+                  "indicator": cfg.api != "opengl"}
         values = self.values()
         for key, row in self.rows.items():
             allowed = scopes.get(key, cfg.api == "opengl" if key.startswith("gl_") else True)
             allowed = allowed and compatible("sr", cfg.gpu)
-            defaults = {"sharpen_value":50, "film_grain":17, "fps":0, "anisotropy":-1, "scaling_size":"720-1080"}
+            defaults = {"sharpen_value":50, "film_grain":17, "fps":0, "anisotropy":-1}
             default = defaults.get(key, False if isinstance(self.controls[key], QCheckBox) else "game")
             selected = values[key] != default
             row.setVisible(allowed or show or selected)
@@ -340,7 +330,6 @@ class LinuxPanel(QWidget):
         sharpening.model().item(sharpening.findData("on")).setEnabled(sharp_ok)
         self.controls["sharpen_value"].setEnabled(cfg.sharpen == "on")
         self.controls["film_grain"].setEnabled(cfg.sharpen == "on")
-        self.controls["scaling_size"].setEnabled(cfg.gamescope != "game")
 
 
 class MainWindow(QMainWindow):
@@ -403,38 +392,19 @@ class MainWindow(QMainWindow):
         titles.addWidget(label("DLSS y ajustes NVIDIA para tus juegos en Linux.", "subtitle", True))
         header.addLayout(titles, 1)
         layout.addLayout(header)
-        destinations = QHBoxLayout()
-        destinations.addWidget(label("DESTINO", "eyebrow"))
-        self.launcher = combo([("steam", "Steam · por juego"), ("epic", "Epic oficial · sesión del launcher")])
-        self.launcher.setAccessibleName("Destino del comando")
-        self.launcher.currentIndexChanged.connect(self.refresh)
-        destinations.addWidget(self.launcher)
-        destinations.addWidget(label("API DEL JUEGO", "eyebrow"))
+        api_row = QHBoxLayout()
+        api_row.addWidget(label("API DEL JUEGO", "eyebrow"))
         self.api = combo([("dxvk", "DirectX 9–11 · DXVK"), ("dx12", "DirectX 12 · VKD3D-Proton"),
                           ("vulkan", "Vulkan · Windows / Proton"), ("native_vulkan", "Vulkan nativo · Linux"), ("opengl", "OpenGL nativo")])
         self.api.setAccessibleName("API gráfica del juego")
         self.api.currentIndexChanged.connect(self.change_api)
-        destinations.addWidget(self.api)
-        layout.addLayout(destinations)
-        self.epic_card = card()
-        epic_layout = QVBoxLayout(self.epic_card)
-        epic_layout.addWidget(label("EPIC PREVIEW · Cierra el launcher antes de ejecutar. Ajustes para toda esa sesión, no por juego.", "amber", True))
-        path_row = QHBoxLayout()
-        self.epic_path = QLineEdit()
-        self.epic_path.setPlaceholderText("Ruta absoluta al AppImage o binario oficial de Epic")
-        self.epic_path.setAccessibleName("Ruta del launcher oficial de Epic")
-        self.epic_path.textChanged.connect(self.refresh)
-        path_row.addWidget(self.epic_path, 1)
-        browse_epic = QPushButton("Elegir archivo…")
-        browse_epic.clicked.connect(self.choose_epic)
-        path_row.addWidget(browse_epic)
-        epic_layout.addLayout(path_row)
-        self.epic_uri = QLineEdit()
-        self.epic_uri.setPlaceholderText("Opcional: com.epicgames.launcher://apps/… (enlace del juego)")
-        self.epic_uri.textChanged.connect(self.refresh)
-        self.epic_uri.setAccessibleName("Enlace opcional de juego Epic")
-        epic_layout.addWidget(self.epic_uri)
-        layout.addWidget(self.epic_card)
+        api_row.addWidget(self.api)
+        api_row.addStretch()
+        self.reset_button = QPushButton("Reset")
+        self.reset_button.setToolTip("Borra los parámetros y deja todos los ajustes controlados por el juego.")
+        self.reset_button.clicked.connect(self.reset_config)
+        api_row.addWidget(self.reset_button)
+        layout.addLayout(api_row)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -481,7 +451,7 @@ class MainWindow(QMainWindow):
         advanced_layout.setContentsMargins(15, 12, 15, 12)
         advanced_layout.addWidget(label("TUS PARÁMETROS ACTUALES · OPCIONAL", "eyebrow"))
         self.existing = QPlainTextEdit()
-        self.existing.setPlaceholderText("Ejemplo: MANGOHUD=1 gamescope -f -- %command% -dx12")
+        self.existing.setPlaceholderText("Ejemplo: %command% -dx12")
         self.existing.setMaximumHeight(65)
         self.existing.setAccessibleName("Parámetros de lanzamiento existentes")
         self.existing.textChanged.connect(self.refresh)
@@ -499,44 +469,57 @@ class MainWindow(QMainWindow):
         layout.addWidget(scroll, 1)
 
         output = card()
-        output.setMaximumHeight(250)
+        output.setMinimumHeight(300)
+        output.setMaximumHeight(360)
         output_layout = QVBoxLayout(output)
         output_layout.setContentsMargins(15, 12, 15, 12)
         output_layout.setSpacing(8)
-        out_header = QHBoxLayout()
-        self.output_title = label("02 / COPIA EL COMANDO PARA STEAM", "eyebrow")
-        out_header.addWidget(self.output_title)
-        out_header.addStretch()
-        self.copy_button = QPushButton("Copiar para Steam")
-        self.copy_button.setObjectName("primary")
-        self.copy_button.clicked.connect(self.copy_command)
-        self.copy_arguments_button = QPushButton("Copiar argumentos Epic")
-        self.copy_arguments_button.clicked.connect(self.copy_epic_arguments)
-        out_header.addWidget(self.copy_arguments_button)
-        out_header.addWidget(self.copy_button)
-        output_layout.addLayout(out_header)
+        self.output_title = label("02 / COPIA EL RESULTADO", "eyebrow")
+        output_layout.addWidget(self.output_title)
         self.output_tabs = QTabWidget()
-        self.output_tabs.setMaximumHeight(100)
+        commands = QWidget()
+        columns = QHBoxLayout(commands)
+        columns.setContentsMargins(8, 8, 8, 8)
         self.command = QPlainTextEdit()
         self.command.setObjectName("command")
         self.command.setReadOnly(True)
         self.command.setAccessibleName("Comando generado para Steam")
-        self.explanation = browser()
-        self.output_tabs.addTab(self.command, "Comando")
-        self.output_tabs.addTab(self.explanation, "Qué hace cada variable")
+        self.command.setPlaceholderText("Elige un ajuste para crear el comando Steam.")
         self.game_arguments = QPlainTextEdit()
+        self.game_arguments.setObjectName("command")
         self.game_arguments.setReadOnly(True)
-        self.game_arguments.setAccessibleName("Argumentos separados para el juego de Epic")
-        self.output_tabs.addTab(self.game_arguments, "Argumentos del juego · Epic")
-        output_layout.addWidget(self.output_tabs)
+        self.game_arguments.setAccessibleName("Argumento Epic")
+        self.game_arguments.setPlaceholderText("Sin argumentos del juego. Las variables NVIDIA no se pueden pegar como argumentos Epic.")
+        self.copy_button = QPushButton("Copiar Steam")
+        self.copy_button.setObjectName("primary")
+        self.copy_button.clicked.connect(self.copy_command)
+        self.copy_arguments_button = QPushButton("Copiar Epic")
+        self.copy_arguments_button.clicked.connect(self.copy_epic_arguments)
+        self.output_guide = label("Steam → Propiedades → Parámetros de lanzamiento.", "muted", True)
+        self.epic_guide = label("Solo argumentos del juego. Epic no interpreta las variables NVIDIA de Steam en este campo.", "muted", True)
+        for title, field, button, guide in (
+                ("Comando Steam", self.command, self.copy_button, self.output_guide),
+                ("Argumento Epic", self.game_arguments, self.copy_arguments_button, self.epic_guide)):
+            column = QVBoxLayout()
+            row = QHBoxLayout()
+            row.addWidget(label(title, "section"))
+            row.addStretch()
+            row.addWidget(button)
+            column.addLayout(row)
+            column.addWidget(field, 1)
+            column.addWidget(guide)
+            columns.addLayout(column, 1)
+        self.explanation = browser()
+        self.explanation.setAccessibleName("Explicación de cada variable y de su valor")
+        self.output_tabs.addTab(commands, "Comandos")
+        self.output_tabs.addTab(self.explanation, "Qué hace cada variable")
+        output_layout.addWidget(self.output_tabs, 1)
         self.notice = QTextBrowser()
         self.notice.setOpenExternalLinks(True)
         self.notice.setObjectName("detail")
         self.notice.setMinimumHeight(44)
-        self.notice.setMaximumHeight(70)
+        self.notice.setMaximumHeight(60)
         output_layout.addWidget(self.notice)
-        self.output_guide = label("", "muted", True)
-        output_layout.addWidget(self.output_guide)
         layout.addWidget(output)
         self.stack.addWidget(page)
 
@@ -552,10 +535,39 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Juego nativo: los overrides DLSS de Proton no se aplican. Se deja DLSS controlado por el juego.", 10000)
         self.refresh()
 
-    def choose_epic(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Seleccionar launcher oficial de Epic", str(Path.home()), "AppImage o ejecutable (*)")
-        if path:
-            self.epic_path.setText(path)
+    def reset_config(self):
+        self._building = True
+        try:
+            self.existing.clear()
+            self.updater.setChecked(False)
+            self.advanced.setChecked(False)
+            self.show_unsupported.setChecked(False)
+            self.options_toggle.setChecked(False)
+            pick(self.api, "dxvk")
+            for panel in self.panels.values():
+                panel.populate(False, "game")
+                if panel.mode is not None:
+                    pick(panel.mode, "game")
+                    panel.custom_scale.setValue(67)
+            fg = self.panels["fg"]
+            pick(fg.fg_mode, "game")
+            pick(fg.multiplier, 2)
+            fg.target.setValue(144)
+            defaults = Config()
+            for key, widget in self.linux_panel.controls.items():
+                value = getattr(defaults, key)
+                if isinstance(widget, QCheckBox):
+                    widget.setChecked(value)
+                elif isinstance(widget, QSpinBox):
+                    widget.setValue(value)
+                else:
+                    pick(widget, value)
+            self.tabs.setCurrentIndex(0)
+            self.output_tabs.setCurrentIndex(0)
+        finally:
+            self._building = False
+        self.refresh()
+        self.statusBar().showMessage("Configuración borrada. Elige nuevos ajustes para empezar de cero.", 6000)
 
     def toggle_options(self, checked):
         self.advanced_card.setVisible(checked)
@@ -573,8 +585,7 @@ class MainWindow(QMainWindow):
             fg=Selection(fg.models.currentData() or "game"),
             fg_mode=fg.fg_mode.currentData(), multiplier=fg.multiplier.currentData(),
             target_fps=fg.target.value(), updater=self.updater.isChecked(),
-            existing=self.existing.toPlainText(), launcher=self.launcher.currentData(),
-            epic_path=self.epic_path.text(), epic_uri=self.epic_uri.text(), api=self.api.currentData(),
+            existing=self.existing.toPlainText(), api=self.api.currentData(),
             driver=self.hw.driver if self.hw.driver != "Sin detectar" else "",
             smooth_layer=self.hw.smooth_layer, reflex_layer=self.hw.reflex_layer,
             **self.linux_panel.values())
@@ -583,14 +594,6 @@ class MainWindow(QMainWindow):
         if self._building:
             return
         cfg = self.config()
-        epic = cfg.launcher == "epic"
-        self.epic_card.setVisible(epic)
-        self.output_title.setText("02 / COPIA EL COMANDO PARA " + ("EPIC · TERMINAL" if epic else "STEAM"))
-        self.copy_button.setText("Copiar para Epic" if epic else "Copiar para Steam")
-        self.output_tabs.setTabVisible(2, epic)
-        self.command.setAccessibleName("Comando generado para " + ("Epic" if epic else "Steam"))
-        self.output_guide.setText("Epic: ejecuta en una terminal con el launcher cerrado. Variables para toda la sesión; argumentos del juego en la pestaña separada. Herencia al juego sin verificar." if epic else
-                                  "Steam → Propiedades del juego → General → Parámetros de lanzamiento. Aplicación dentro del juego: sin verificar.")
         self.linux_panel.update_support(cfg, self.show_unsupported.isChecked())
         self.hardware_label.setText(self.hw.name)
         self.hardware_support.setText(
@@ -607,10 +610,17 @@ class MainWindow(QMainWindow):
         for panel in self.panels.values():
             panel.update_info(cfg.gpu, cfg.api)
         self.result = generate(cfg)
+        if self.result.command == "%command%":
+            self.result.command = ""
         self.command.setPlainText(self.result.command)
-        self.game_arguments.setPlainText(self.result.game_arguments)
-        self.copy_arguments_button.setVisible(epic)
-        self.copy_arguments_button.setEnabled(not self.result.errors and bool(self.result.game_arguments))
+        try:
+            self.epic_arguments = epic_arguments(cfg.existing)
+            self.epic_guide.setText("Solo argumentos del juego. Los ajustes NVIDIA necesitan variables de entorno; no se aplican pegándolos aquí.")
+        except ValueError as error:
+            self.epic_arguments = ""
+            self.epic_guide.setText(str(error))
+        self.game_arguments.setPlainText(self.epic_arguments)
+        self.copy_arguments_button.setEnabled(bool(self.epic_arguments))
         self.copy_button.setEnabled(not self.result.errors and bool(self.result.command))
         messages = list(self.result.errors) + list(self.result.warnings) + list(self.hw.notes)
         active = bool(self.result.settings)
@@ -624,27 +634,10 @@ class MainWindow(QMainWindow):
             messages = ["Sin overrides nuevos. Se respetan las decisiones del juego. Aplicación en juego: sin verificar."]
         self.notice.setHtml(html("".join(f'<p style="margin: 3px 0; color: {"#f4be8c" if i < len(self.result.errors) else "#aabac6"}">• '
                                          f'{escape(message)}</p>' for i, message in enumerate(messages))))
-        explain = []
-        for key, value in self.result.settings.items():
-            if "RENDER_PRESET" in key:
-                meaning = "Solicita el modelo de esta tecnología; no activa la función si el juego no la integra."
-            elif key.endswith("_OVERRIDE"):
-                meaning = "Habilita la ruta de override de snippets/componentes de esta tecnología."
-            elif key.endswith("_MODE"):
-                meaning = "Solicita un modo; su aplicación depende del runtime y del juego."
-            elif "COUNT" in key:
-                meaning = "Número de fotogramas generados: multiplicador menos uno (3 = 4×, no 3×)."
-            else:
-                meaning = "Objetivo FPS del modo dinámico; no es una medición."
-            explain.append(f"<p><code>{escape(key)}={escape(value)}</code><br>{meaning}</p>")
-        if cfg.updater and self.result.settings:
-            explain.insert(0, "<p><code>PROTON_ENABLE_NGX_UPDATER=1</code><br>Solicita a Proton las "
-                              "actualizaciones NGX; no actualiza tu controlador y puede fallar en algunos juegos.</p>")
-        for key, value in self.result.environment.items():
-            if key in ("DXVK_NVAPI_DRS_SETTINGS", "PROTON_ENABLE_NGX_UPDATER"):
-                continue
-            explain.append(f"<p><code>{escape(key)}={escape(value)}</code></p>")
-        self.explanation.setHtml(html("".join(explain) or "<p>No se generan variables nuevas.</p>"))
+        explanations = explain_result(self.result)
+        self.explanation.setHtml(html("".join(
+            f"<p><code>{escape(token)}</code><br>{escape(meaning)}</p>"
+            for token, meaning in explanations) or "<p>No hay variables activas. Elige un ajuste para ver qué hace y qué significa su valor.</p>"))
         if cfg.gpu in ("rtx20", "rtx30"):
             suggestion = "Para tu GPU: K · DLSS 4.0 es un buen punto de partida. L/M · DLSS 4.5 pueden costar más FPS."
         elif cfg.gpu in ("rtx40", "rtx50"):
@@ -660,18 +653,18 @@ class MainWindow(QMainWindow):
 
     def copy_epic_arguments(self):
         self.refresh()
-        if not self.result.errors and self.result.game_arguments:
-            QApplication.clipboard().setText(self.result.game_arguments)
-            self.statusBar().showMessage("Argumentos copiados. Pégalos en los argumentos adicionales del juego en Epic, no en una terminal.", 8000)
+        if self.epic_arguments:
+            QApplication.clipboard().setText(self.epic_arguments)
+            self.statusBar().showMessage("Argumentos copiados para los ajustes del juego en Epic. No contienen los ajustes NVIDIA.", 8000)
 
     def copy_command(self):
         self.refresh()
         if self.result.errors or not self.result.command:
             return
         QApplication.clipboard().setText(self.result.command)
-        self.statusBar().showMessage("Comando copiado para " + ("Epic · ejecutar en terminal con el launcher cerrado." if self.launcher.currentData() == "epic" else "Steam · parámetros de lanzamiento del juego."), 8000)
+        self.statusBar().showMessage("Comando copiado para Steam → Parámetros de lanzamiento del juego.", 8000)
         self.copy_button.setText("✓ Copiado")
-        QTimer.singleShot(1800, lambda: self.copy_button.setText("Copiar para Epic" if self.launcher.currentData() == "epic" else "Copiar para Steam"))
+        QTimer.singleShot(1800, lambda: self.copy_button.setText("Copiar Steam"))
 
 def main():
     parser = argparse.ArgumentParser(description="NVIDIA Commands for Linux · Linux / Proton")
@@ -711,9 +704,16 @@ def main():
                 assert not smooth.errors and "NVPRESENT_ENABLE_SMOOTH_MOTION=1" in smooth.command, "Smooth Motion incorrecto"
                 conflict = generate(Config(gpu="rtx50", smooth="on", fg_mode="dynamic"))
                 assert conflict.errors and not conflict.command, "Conflicto FG no bloqueado"
-                epic = generate(Config(gpu="rtx50", launcher="epic", epic_path="/example/Epic Games.AppImage", existing="%command% -dx12"))
-                assert not epic.errors and "%command%" not in epic.command and epic.game_arguments == "-dx12", "Salida Epic incorrecta"
-                print(f"NVIDIA Commands for Linux {__version__}: recursos, GPU simulada, presets, Steam/Epic, Smooth Motion, conflictos y portapapeles OK", flush=True)
+                window.existing.setPlainText("%command% -dx12")
+                window.copy_epic_arguments()
+                assert app.clipboard().text() == "-dx12", "Argumentos Epic incorrectos"
+                assert "DXVK_NVAPI_DRS_SETTINGS" in window.explanation.toPlainText(), "Explicaciones ausentes"
+                window.reset_button.click()
+                assert not window.command.toPlainText() and not window.game_arguments.toPlainText(), "Reset no vacía las salidas"
+                assert not window.result.environment and not window.copy_button.isEnabled(), "Reset conserva ajustes"
+                pick(window.panels["sr"].models, "M")
+                assert "render_preset_m" in window.command.toPlainText(), "No se puede empezar tras Reset"
+                print(f"NVIDIA Commands for Linux {__version__}: recursos, GPU simulada, presets, Steam/Argumento Epic, Reset, explicaciones, Smooth Motion, conflictos y portapapeles OK", flush=True)
                 app.exit(0)
             except Exception as error:
                 print(f"Autocomprobación fallida: {error}", file=sys.stderr, flush=True)

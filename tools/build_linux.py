@@ -126,9 +126,9 @@ Replaces: dlss-studio (<< 2.0.0)
 Breaks: dlss-studio (<< 2.0.0)
 Provides: dlss-studio
 Installed-Size: {size}
-Description: NVIDIA graphics launch commands for Steam and Epic on Linux
+Description: NVIDIA graphics launch commands and game arguments on Linux
  Interfaz en español para DLSS, Smooth Motion y ajustes compatibles de Linux.
- Genera comandos Steam o inicio de sesión Epic con argumentos separados.
+ Genera comandos Steam y muestra argumentos del juego para Epic por separado.
  Incluye Python, Qt, bibliotecas de escritorio y fuentes. No descarga
  dependencias al instalarse. Requiere sesión gráfica y controlador NVIDIA
  del sistema para detectar la GPU. No incluye Steam, Proton ni controladores.
@@ -146,7 +146,7 @@ Description: NVIDIA graphics launch commands for Steam and Epic on Linux
         'base': 'Ubuntu 22.04', 'python': sys.version.split()[0],
         'qt': '6.8.3', 'pyinstaller': '6.16.0', 'runtime_sha256': RUNTIME_SHA256,
         'bundled': 'Python, PySide6/Qt, desktop shared libraries, fonts, licenses',
-        'external': 'glibc, Linux kernel, desktop, NVIDIA driver; Steam/Proton or Epic/runtime; optional Gamescope/MangoHud',
+        'external': 'glibc, Linux kernel, desktop, NVIDIA driver; Steam/Proton or Epic/runtime',
     }, indent=2) + '\n')
     for f in [appimage, deb]:
         print(f'{f.name}: {f.stat().st_size / 1024 / 1024:.1f} MiB')

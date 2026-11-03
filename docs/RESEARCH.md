@@ -24,18 +24,18 @@ Reference GPU: GeForce RTX 5070 (Blackwell, RTX 50). Hardware eligibility is not
 | Anisotropic filtering | DXVK D3D9/11 sampler override or NVIDIA OpenGL log-anisotropy; not a DX12/Vulkan override |
 | Texture LOD bias | DXVK D3D9/11; negative values can shimmer |
 | Image sharpening | R595 documented `__GL_SHARPEN_ENABLE`, value and film-grain control, OpenGL/Vulkan |
-| NVIDIA Image Scaling | Optional Gamescope NIS v1.0.3 spatial upscaler; not the Windows driver UI feature |
-| DSR / DLDSR | No verified equivalent driver launch setting; optional Gamescope supersampling is an alternative, explicitly not DLDSR |
-| FSR spatial scaling | Optional Gamescope FSR 1; distinct from DLSS, FSR 2/3 and frame generation |
+| NVIDIA Image Scaling | Not offered by this generator; Gamescope NIS v1.0.3 is a separate spatial-upscaling alternative, not the Windows driver UI feature |
+| DSR / DLDSR | No verified equivalent driver launch setting; Gamescope supersampling is a separate alternative, not offered here and explicitly not DLDSR |
+| FSR spatial scaling | Not offered here; Gamescope FSR 1 is a separate spatial-scaling alternative, distinct from DLSS, FSR 2/3 and frame generation |
 | FXAA / MSAA / MFAA | OpenGL FXAA permission only when the driver profile already enables FXAA. No fake force-AA toggle. FSAA depends on driver/profile application-control state; no general DX12/temporal-AA override |
 | Threaded optimization | `__GL_THREADED_OPTIMIZATIONS` for OpenGL only |
 | Shader disk cache | `__GL_SHADER_DISK_CACHE` for OpenGL; no cache deletion, no Steam precache control |
-| HDR game output | `DXVK_HDR=1` advertises native HDR in DXVK; entire HDR display/compositor chain required |
+| HDR game output | Not offered by this generator; native HDR requires game/runtime/display/compositor setup, separate from RTX HDR |
 | RTX HDR / SDR-to-HDR | Not implemented; native HDR signaling is not RTX HDR |
 | Freestyle / RTX Dynamic Vibrance / Ansel / Photo Mode | No verified interchangeable Linux driver launch-variable route; not exposed as equivalent |
-| FPS/performance overlay | DXVK HUD, external MangoHud, NVIDIA graphics indicator; not Reflex Analyzer or NVIDIA's overlay |
+| FPS/performance overlay | NVIDIA graphics indicator and DLSS indicators; external DXVK HUD/MangoHud are not offered here. Not Reflex Analyzer or NVIDIA's overlay |
 | Actual DLSS model indicator | Wine NGX registry indicators (persistent, explicit disable); native Vulkan SR indicator via `__NGX_SHOW_INDICATOR` (temporary) |
-| Preferred GPU / hybrid systems | Optional PRIME offload; real GPU detection, no GPU spoofing |
+| Preferred GPU / hybrid systems | Real GPU detection, no GPU spoofing; PRIME offload is external and not offered as a control |
 | Optimal settings / cloud game optimization | No access to NVIDIA App's Windows profiles/cloud optimization; no invented recommendations per game |
 | Driver download / Game Ready vs Studio | Distribution/package-manager responsibility, not generated as game launch options |
 | Automatic GPU tuning / overclock / voltage / power / fans | Linux has separate NVML/NV-CONTROL tooling and hardware/session restrictions; not per-game launch variables. No global tuning or privileged writes in this app |

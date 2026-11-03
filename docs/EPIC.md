@@ -11,22 +11,30 @@
 - The binary includes separate Proton acquisition/wrapping paths and child-environment scrubbing. Presence of a Proton runtime is **not** proof it honors Steam's current configuration variables or forwards every inherited variable.
 - Ghidra/REA accepted artifact identity, but native function search timed out before analysis results were available. The 32 MiB standalone layout tool could not accept this 197 MiB ELF. The field observations above are from ordinary offline `nm`/`objdump`/byte-range inspection, **not** a successful REA decompilation. Split DWARF files were absent, so GDB type recovery did not establish additional fields. The analysis session was closed.
 
-## Implemented output contract
+## Current interface: game arguments only
 
-Steam emits environment assignments, wrappers, exactly one `%command%`, then game arguments. Epic Preview has **no assumed equivalent Steam parser**:
+**Comando Steam** and **Argumento Epic** appear side by side with independent copy buttons. Steam contains environment assignments, any safely preserved wrappers, exactly one `%command%`, then game arguments. Epic contains **only game arguments** after that placeholder.
 
-```text
-env VARIABLE=value '/absolute/path/to/EpicGamesLauncher.AppImage' 'com.epicgames.launcher://apps/…'
+For example, enter `%command% -dx12` in **Más opciones**, then copy `-dx12` from **Argumento Epic** to the game's additional-command setting. Only use arguments actually supported by that game. The application never invents arguments from NVIDIA selections.
+
+**NVIDIA variables are not Epic game arguments.** If you only select DLSS, Smooth Motion or sharpening, the Epic box remains empty. Do not paste environment assignments, `%command%` or Steam wrappers into Epic's game-argument field. This interface does not launch Epic or provide per-game environment profiles.
+
+## Experimental manual session environment
+
+A separate Unix terminal technique can set environment variables when starting the whole launcher. It is **not a generated output of this interface**:
+
+```sh
+env VARIABLE=value '/absolute/path/to/EpicGamesLauncher.AppImage'
 ```
 
-The URI is optional and must be copied from an actual official game shortcut/link; the application does not invent identifiers, authentication tokens or entitlements. The executable path and URI are quoted independently. Without a URI, open the game from the launcher library.
+Replace the placeholder assignment with actual supported variables and the path with your launcher executable. Do not include `%command%`. Open the game from the launcher library.
 
-**Fully exit the launcher first**: starting a second instance can hand off to an already-running process with the old environment. Settings apply to all games started by that launcher session, and to the launcher itself where relevant. To isolate another configuration, fully close and start a new session. This is not per-game profile storage.
+**Fully exit the launcher first**: a second instance can hand off to an existing process with its old environment. Variables apply to the launcher and potentially all games in that session, not isolated per-game profiles. Fully close and restart to change the session environment.
 
-Game arguments such as `-dx12` are emitted separately, with a separate copy button. Enable/paste them in that game's additional-command setting. Environment assignments and `%command%` do not belong there. Steam wrappers/Gamescope are rejected for this route rather than wrapped around the launcher.
+No authenticated game has verified this propagation. A correct Unix startup environment does not prove that Epic's runtime retains or implements a variable.
 
 ## Remaining unknowns
 
-No Epic login, account/private game configuration, authenticated game launch or actual child-game environment was accessed. **The generated startup environment is verified by parser/UI tests, not by a real Epic game.** Compatibility/runtime propagation remains experimental. No per-game variable editor or undocumented config-file write is implemented. Future launcher versions may change the schema and must be reviewed independently.
+No Epic login, account/private game configuration, authenticated game launch or actual child-game environment was accessed. **Argument extraction and clipboard behavior are verified by parser/UI tests, not by a real Epic game.** Compatibility/runtime propagation remains experimental. No per-game variable editor or undocumented config-file write is implemented. Future launcher versions may change the schema and must be reviewed independently.
 
 DXVK-NVAPI and `PROTON_ENABLE_NGX_UPDATER` require corresponding runtime implementations. The generic Unix environment-startup route does not guarantee those implementations exist in Epic. NVIDIA driver variables likewise require the game's process to retain/load the corresponding driver/layer.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify final artifacts in a clean Ubuntu Base; never installs on the host."""
 from pathlib import Path
+import ast
 import hashlib
 import json
 import os
@@ -8,10 +9,13 @@ import re
 import shutil
 import subprocess
 import uuid
+import sys
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from nvidia_commands import __version__ as VERSION
 BUILD = ROOT / 'build/portable'
-BASE = BUILD / 'verify-rootfs'
+BASE = BUILD / ('verify-rootfs-' + VERSION)
 DIST = ROOT / 'dist'
 
 
@@ -32,11 +36,11 @@ def main():
     assert not (BASE / 'usr/bin/python3').exists()
     assert not (BASE / 'usr/lib/x86_64-linux-gnu/libQt6Core.so.6').exists()
     # No host directories or display socket; /dist is read-only and network is isolated.
-    command = '''set -eu
+    command = f'''set -eu
 cd /dist
 sha256sum -c SHA256SUMS
-./NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --appimage-extract-and-run --self-test
-dpkg -i nvidia-commands-for-linux_2.0.0_amd64.deb
+./NVIDIA-Commands-for-Linux-{VERSION}-x86_64.AppImage --appimage-extract-and-run --self-test
+dpkg -i nvidia-commands-for-linux_{VERSION}_amd64.deb
 nvidia-commands-for-linux --self-test
 nvidia-commands-for-linux --version
 dpkg --purge nvidia-commands-for-linux
@@ -60,12 +64,15 @@ test ! -e /usr/share/applications/nvidia-commands-for-linux.desktop
         versions.update(re.findall(r'GLIBC_(\d+\.\d+(?:\.\d+)?)',info))
     maximum = max(versions,key=lambda v:tuple(map(int,v.split('.'))))
     assert tuple(map(int,maximum.split('.'))) <= (2,35), maximum
-    report = {'version':'2.0.0','unit_ui_tests':85,'base':'Ubuntu Base 22.04.5, SHA256-verified',
+    test_count = sum(isinstance(node, ast.FunctionDef) and node.name.startswith('test_')
+                     for path in (ROOT / 'tests').glob('test_*.py')
+                     for node in ast.walk(ast.parse(path.read_text())))
+    report = {'version':VERSION,'unit_ui_tests':test_count,'base':'Ubuntu Base 22.04.5, SHA256-verified',
               'base_system_python_qt':False,'network':'unshared','host_installation':False,
               'appimage_extract_and_run':'passed','deb_install_self_test_purge':'passed',
               'elf_count':elf_count,'max_required_glibc':maximum,
               'physical_rtx5070':False,'in_game_verification':False,'epic_authenticated_game':False}
-    out = ROOT / '.cache/portable-verification.json'
+    out = ROOT / ('.cache/portable-verification-' + VERSION + '.json')
     out.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 

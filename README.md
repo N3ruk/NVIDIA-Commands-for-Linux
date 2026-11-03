@@ -19,7 +19,7 @@ Choose DLSS models and supported Linux graphics options, then copy a command. Th
 | Portable x86_64 AppImage | [NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.0.0/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage) |
 | Self-contained amd64 DEB | [nvidia-commands-for-linux_2.0.0_amd64.deb](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.0.0/nvidia-commands-for-linux_2.0.0_amd64.deb) |
 
-Both include Python, Qt, desktop libraries, fonts and licenses. Requires x86_64 GNU/Linux, **glibc 2.35+**, and an X11/Wayland desktop (Ubuntu 22.04+, Debian 12+, Mint 21+). Not ARM, 32-bit, musl or a universal Linux binary. Drivers and game runtimes are not bundled. Optional Gamescope/MangoHud must be installed separately.
+Both include Python, Qt, desktop libraries, fonts and licenses. Requires x86_64 GNU/Linux, **glibc 2.35+**, and an X11/Wayland desktop (Ubuntu 22.04+, Debian 12+, Mint 21+). Not ARM, 32-bit, musl or a universal Linux binary. Drivers and game runtimes are not bundled. No Gamescope or MangoHud installation is required by the configurator.
 
 ```sh
 chmod +x NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage
@@ -38,34 +38,34 @@ Open the DEB in your package installer. It installs under `/opt/nvidia-commands-
 - **Smooth Motion:** driver interpolation through `VK_LAYER_NV_present`; documented baselines RTX 50 **580.65.06+**, RTX 40 **580.95.05+**, Vulkan x86_64. Conflicts with game FG are blocked/reported.
 - **NVIDIA sharpening:** OpenGL/Vulkan driver filter, strength and film-grain suppression; documented R595+ baseline. Not NIS scaling.
 - **Latency / pacing:** optional Vulkan Reflex bridge, DXVK latency-sleep control, DXVK/VKD3D FPS limits and API-specific VSync.
-- **Textures / display:** DXVK/OpenGL anisotropy, DXVK LOD bias, DXVK native-HDR signaling, OpenGL VRR, threaded optimizations, shader cache and FXAA permission.
-- **Overlays:** DXVK HUD, optional MangoHud, driver graphics indicator and DLSS indicators with an explicit disable option.
-- **Hybrid graphics:** optional NVIDIA PRIME render offload.
-- **Optional Gamescope:** spatial NIS/FSR 1 upscaling and supersampling for Steam commands. Not driver DSR/DLDSR or temporal DLSS. Automatic Smooth Motion/Gamescope combination is blocked to avoid applying the layer to the compositor.
+- **Textures / display:** DXVK/OpenGL anisotropy, DXVK LOD bias, OpenGL VRR, threaded optimizations, shader cache and FXAA permission.
+- **Indicators:** NVIDIA graphics indicator and DLSS indicators with an explicit disable option.
+- **Focused scope:** no Gamescope/NIS/FSR wrapper, MangoHud/DXVK HUD, PRIME selector or generic HDR signaling controls. Those launcher/runtime utilities belong in SteamCommandGen, not in this NVIDIA graphics configurator.
+- **Reset:** clears imported parameters, all overrides and both outputs without changing the detected GPU or the system. Previously applied persistent Wine indicators still require one launch with their disable option.
+- **Explanations:** describes each variable and the actual selected value, including individual DRS and DXVK settings. Unknown imported values are identified, not guessed.
 
 Native Linux and Wine/Proton are distinct: **native Linux DLSS preset overrides are not supported** by this implementation. Selecting a native API resets Proton-only selections to game-controlled. Native Vulkan can use the temporary SR indicator, Smooth Motion and compatible driver options.
 
 ![Linux options filtered for the detected GPU](docs/linux-options.png)
 
+![Variable explanations with concrete selected values](docs/variable-explanations.png)
+
 ## Steam
 
-1. Keep **Steam · por juego** selected and choose the game's actual graphics API.
+1. Choose the game's actual graphics API. Both command outputs remain visible together.
 2. Select compatible options. Existing simple launch parameters can be merged under **Más opciones**.
 3. Copy into Steam → game Properties → General → Launch Options.
 4. Enable integrated technologies in the game. Disable in-game FG when using Smooth Motion.
 
 Exactly one `%command%` is generated. Existing wrappers, arguments and unrelated settings are preserved when safely mergeable; conflicting/complex input is rejected rather than executed.
 
-## Official Epic Linux Preview — session-level, experimental
+## Argumento Epic — alongside Comando Steam
 
-The official native Linux launcher exists; the inspected public build is **0.109.0+ge564459**. Its per-game additional-command field is **not a Steam launch-command field**.
+Both output boxes are visible together with independent copy buttons. **Comando Steam** contains the full Steam launch command. **Argumento Epic** contains only existing game arguments after `%command%`, such as `-dx12`, for the game's additional arguments field. Add existing launch options under **Más opciones**, for example `%command% -dx12`.
 
-1. Select **Epic oficial · sesión del launcher** and the absolute path to its official AppImage/binary.
-2. Optionally paste a `com.epicgames.launcher://apps/…` game link.
-3. Fully exit Epic, copy the generated **terminal command**, and run it. It starts the launcher with environment variables for **that whole session**, not an isolated per-game profile.
-4. Copy any game arguments separately using **Copiar argumentos Epic** into the game's additional arguments setting.
+**NVIDIA environment variables are not Epic game arguments.** Selecting DLSS, Smooth Motion or sharpening does not invent an equivalent Epic argument: the Epic box stays empty unless game arguments are supplied. Steam wrappers cannot be converted to Epic arguments. Session startup is not a feature of this interface.
 
-No `%command%` is sent to Epic. Steam wrappers are rejected, not applied to the launcher as though it were the game. **Environment propagation through Epic's runtime to an authenticated game has not been verified.** Proton-specific settings only work if the actual runtime implements them. See [Epic investigation and limitations](docs/EPIC.md).
+The inspected official Linux Preview **0.109.0+ge564459** has no verified per-game environment-variable field. Starting its whole process with an environment remains a separate experimental technique, not an output of the current UI, and propagation to an authenticated game is unverified. [Research and limits](docs/EPIC.md).
 
 ## Scope and verification
 

@@ -493,3 +493,12 @@ def compose_epic(c, r, env, tokens):
     r.warnings.append('Epic Preview: cierra completamente el launcher antes de ejecutar este comando en una terminal. Las variables pertenecen a toda esa sesión, no a un perfil por juego; salen de efecto al cerrar Epic.')
     if args:r.warnings.append('Copia los argumentos del juego por separado en sus ajustes de Epic. Las variables de entorno NO van en ese campo.')
     r.warnings.append('La herencia hasta el runtime/juego de Epic está sin verificar en una sesión con cuenta. No se presupone que Epic use Proton de Steam ni que acepte %command%.')
+
+
+def epic_arguments(existing):
+    """Extract only game arguments; never disguise environment as Epic arguments."""
+    _, tokens = parse_existing(existing)
+    index = tokens.index('%command%')
+    if index:
+        raise ValueError('Los wrappers de Steam no son argumentos Epic. No se convierten automáticamente.')
+    return shlex.join(tokens[index + 1:])
