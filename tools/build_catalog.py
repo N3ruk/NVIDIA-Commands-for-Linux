@@ -148,7 +148,7 @@ catalog = dict(version=2, reviewed="2026-10-29", sources=sources, technologies={
  "rr": dict(title="Ray Reconstruction", minimum="GeForce RTX 20 o superior · juego con RR", presets=rr),
  "fg": dict(title="Frame Generation", minimum="RTX 40: FG 2× · RTX 50: MFG hasta 6× y dinámico", presets=fg),
 })
-(BASE / "dlss_studio/data").mkdir(exist_ok=True)
-(BASE / "dlss_studio/data/catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n",
+(BASE / "nvidia_commands/data").mkdir(exist_ok=True)
+(BASE / "nvidia_commands/data/catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n",
                                       encoding="utf-8")
 print("Catálogo generado:", sum(len(t["presets"]) for t in catalog["technologies"].values()), "entradas")

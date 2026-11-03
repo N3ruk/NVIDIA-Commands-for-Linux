@@ -4,7 +4,7 @@
 
 La licencia BSD-3-Clause del proyecto se aplica al código propio; los componentes
 incluidos conservan sus licencias. Las bibliotecas son dinámicas y reemplazables
-en `usr/lib/dlss-studio/_internal` (dentro de AppImage extraído o `/opt/dlss-studio`).
+en `usr/lib/nvidia-commands-for-linux/_internal` (dentro de AppImage extraído o `/opt/nvidia-commands-for-linux`).
 
 - Python 3.10: PSF License. Fuente: https://www.python.org/downloads/source/
 - PySide6 / Shiboken6 6.8.3 y Qt 6.8.3: LGPL-3.0/GPL según componente;

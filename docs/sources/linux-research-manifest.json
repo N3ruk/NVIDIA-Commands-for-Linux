@@ -1,0 +1,82 @@
+{
+  "reviewed": "2026-11-03",
+  "sources": {
+    "gaming": {
+      "url": "https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/gaming.html",
+      "bytes": 47342,
+      "sha256": "ea1806ff43ddc10d94889a19124c6c6ec5316e278b30b807aa337c291b646ff8"
+    },
+    "nvidia-app": {
+      "url": "https://www.nvidia.com/en-us/software/nvidia-app/",
+      "bytes": 289138,
+      "sha256": "2dc09f3464f3ea26cd9a4f82fcd559511e3c468b1f752212e57187e45561e178"
+    },
+    "nvapi-settings": {
+      "url": "https://raw.githubusercontent.com/NVIDIA/nvapi/main/NvApiDriverSettings.h",
+      "bytes": 77808,
+      "sha256": "95ffda903832840343a81189e052a0756774bd92e4b37f2dc49598d493f951d4"
+    },
+    "dxvk-nvapi": {
+      "url": "https://raw.githubusercontent.com/jp7677/dxvk-nvapi/master/README.md",
+      "bytes": 20594,
+      "sha256": "d6f1fefcbc7755bdac8e2e5386080c5c89586235338838de6b58869b9335afc0"
+    },
+    "dxvk": {
+      "url": "https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf",
+      "bytes": 30673,
+      "sha256": "60edaec21f8e164b1cad1568d4517442cce70c2c9ebef5465155289fcd6759ad"
+    },
+    "vkd3d": {
+      "url": "https://raw.githubusercontent.com/HansKristian-Work/vkd3d-proton/master/README.md",
+      "bytes": 23568,
+      "sha256": "145943a08dbff08b4b615e6abb63c6049a968d3e07aae720f98358147334f523"
+    },
+    "proton": {
+      "url": "https://raw.githubusercontent.com/ValveSoftware/Proton/master/README.md",
+      "bytes": 16877,
+      "sha256": "658deba79398c78d292d7095457ffa290881186c30967f9f6b771c24a581a041"
+    },
+    "nvidia-driver": {
+      "url": "https://download.nvidia.com/XFree86/Linux-x86_64/595.71.05/README/openglenvvariables.html",
+      "bytes": 24134,
+      "sha256": "7ea6970dad25029e71f22aa8d3f07f372b5e4e3fcbfd27a3dffade2912a3e823"
+    },
+    "smooth-rtx50": {
+      "url": "https://download.nvidia.com/XFree86/Linux-x86_64/580.65.06/README/nvpresent.html",
+      "bytes": 3603,
+      "sha256": "fd98eed0d420a811cb0fee7030a25a9906feedb5a7deb747bc131018bced09e6"
+    },
+    "smooth-rtx40": {
+      "url": "https://download.nvidia.com/XFree86/Linux-x86_64/580.95.05/README/nvpresent.html",
+      "bytes": 3613,
+      "sha256": "bbefa07fcb514f699c0658af77e7f734eec8904501f0c3b19347577cca3d05ce"
+    },
+    "epic": {
+      "url": "https://launcher.epicgames.com/",
+      "bytes": 70040,
+      "sha256": "c50ed0c3b31a608f50ee43fb71c7a693f9628a8cd28789dc381216a3e7299b85"
+    },
+    "epic-notes": {
+      "url": "https://launcher.epicgames.com/release-notes",
+      "bytes": 57469,
+      "sha256": "ba60622e33f98051239c6f1634cee1c46e1bb4f8d68ebf22c1b770f7523eadcd"
+    },
+    "epic-appimage": {
+      "url": "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncher-x86_64.AppImage",
+      "bytes": 185039352,
+      "sha256": "20b5a1a51ccc20979a04621d34b1c2a4fc52f36e85cc52833b168cad2d9285ec"
+    },
+    "gamescope": {
+      "url": "https://raw.githubusercontent.com/ValveSoftware/gamescope/master/README.md",
+      "bytes": 5685,
+      "sha256": "5a9130ced7900e30f62fc7a0b033d2e5d9f849e1069704483c3e396652aeff87"
+    }
+  },
+  "epic_elf": {
+    "version": "0.109.0+ge564459",
+    "sha256": "b84b4ea982ee7b5017e465dff0a3234ac3e5b23979902323bd96074a2ae3a7cd",
+    "field_visitor": "0x29cfde0..0x29cfe85",
+    "method": "offline nm/objdump/byte ranges; REA native search timed out",
+    "runtime_verified": false
+  }
+}

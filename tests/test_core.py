@@ -6,7 +6,7 @@ import shlex
 import tempfile
 import unittest
 from unittest.mock import patch
-from dlss_studio.core import (CATALOG, Config, Selection, ProfileStore, compatible,
+from nvidia_commands.core import (CATALOG, Config, Selection, ProfileStore, compatible,
                               family_for, generate, preset, detect_protons, detect_hardware)
 
 class CommandTests(unittest.TestCase):
@@ -143,7 +143,7 @@ class CommandTests(unittest.TestCase):
             custom = home / ".local/share/Steam/compatibilitytools.d/GE-Proton"
             custom.mkdir(parents=True)
             (custom / "compatibilitytool.vdf").touch()
-            with patch("dlss_studio.core.Path.home", return_value=home):
+            with patch("nvidia_commands.core.Path.home", return_value=home):
                 self.assertEqual(detect_protons(), ["GE-Proton", "Proton - Experimental"])
 
     def test_frozen_detection_uses_system_library_path(self):
@@ -154,8 +154,8 @@ class CommandTests(unittest.TestCase):
                 if original is not None:
                     env["LD_LIBRARY_PATH_ORIG"] = original
                 with patch.dict(os.environ, env, clear=True), \
-                     patch("dlss_studio.core.sys.frozen", True, create=True), \
-                     patch("dlss_studio.core.subprocess.run", return_value=reply) as run:
+                     patch("nvidia_commands.core.sys.frozen", True, create=True), \
+                     patch("nvidia_commands.core.subprocess.run", return_value=reply) as run:
                     self.assertEqual(detect_hardware().family, "rtx20")
                     self.assertEqual(run.call_args.kwargs["env"].get("LD_LIBRARY_PATH"), original)
                     self.assertEqual(os.environ["LD_LIBRARY_PATH"], "/bundled/qt")

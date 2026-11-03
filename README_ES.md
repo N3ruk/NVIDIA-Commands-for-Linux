@@ -1,99 +1,81 @@
-<img src="dlss_studio/assets/dlss-studio.png" width="100" align="right" alt="DLSS Studio">
+<img src="nvidia_commands/assets/nvidia-commands-for-linux.png" width="100" align="right" alt="NVIDIA Commands for Linux">
+
+# NVIDIA Commands for Linux · 2.0.0
 
 [English](README.md) | **Español**
 
-# DLSS Studio · 1.0.0
+**Genera comandos gráficos NVIDIA para Linux. Antes: DLSS Studio.**
 
-**Facilita configurar presets DLSS y copiar comandos para tus juegos.**
+Elige modelos DLSS y ajustes con una ruta Linux documentada. La interfaz conserva el diseño oscuro/verde, detecta la GPU y filtra controles por generación y API gráfica. **No es NVIDIA App ni está afiliada a NVIDIA, Valve o Epic Games.**
 
-Aplicación de escritorio en español para Steam/Linux/Proton. Elige tecnología,
-preset y modo de calidad; copia el comando y pégalo en los parámetros de Steam.
-No modifica Steam ni sustituye DLL. No afiliada a NVIDIA ni a Valve.
-
-![Interfaz de DLSS Studio](docs/screenshot.png)
+![Interfaz con GPU detectada realmente](docs/screenshot.png)
 
 ## Descargar
 
-**[Descargas de la versión 1.0.0](https://github.com/N3ruk/DLSS-Studio/releases/tag/v1.0.0)**
+[Release 2.0.0](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/tag/v2.0.0):
 
-| Formato | Uso |
-| --- | --- |
-| [AppImage x86_64](https://github.com/N3ruk/DLSS-Studio/releases/download/v1.0.0/DLSS-Studio-1.0.0-x86_64.AppImage) | Portable, sin instalación |
-| [DEB amd64](https://github.com/N3ruk/DLSS-Studio/releases/download/v1.0.0/dlss-studio_1.0.0_amd64.deb) | Debian, Ubuntu, Linux Mint y derivados compatibles |
+- [AppImage x86_64](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.0.0/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage).
+- [DEB amd64 autocontenido](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.0.0/nvidia-commands-for-linux_2.0.0_amd64.deb).
 
-Ambos incluyen **Python, Qt, bibliotecas auxiliares y fuentes**. No necesitan
-instalar Python/PySide6 ni descargar dependencias de la aplicación.
-
-**Requisitos:** Linux x86_64 con **glibc 2.35+** y sesión gráfica X11/Wayland;
-por ejemplo Ubuntu 22.04+, Debian 12+ o Linux Mint 21+. No son paquetes para ARM,
-32 bits ni Alpine/musl. El DEB requiere un sistema compatible con Debian.
-El controlador NVIDIA y `nvidia-smi`, Steam y Proton no están incluidos.
-
-### AppImage
+Incluyen Python, Qt, bibliotecas, fuentes y licencias. Requieren GNU/Linux x86_64 con **glibc 2.35+** y escritorio X11/Wayland: Ubuntu 22.04+, Debian 12+, Mint 21+. No ARM, 32 bits, musl ni Linux universal. No incluyen controladores, Steam, Epic o Proton. Gamescope y MangoHud son dependencias opcionales externas.
 
 ```sh
-chmod +x DLSS-Studio-1.0.0-x86_64.AppImage
-./DLSS-Studio-1.0.0-x86_64.AppImage
+chmod +x NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage
+./NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage
+# Sin FUSE:
+./NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --appimage-extract-and-run
 ```
 
-Si tu distribución no permite FUSE:
+Abre el DEB con el instalador de paquetes. Se instala en `/opt/nvidia-commands-for-linux`; declara la sustitución del paquete `dlss-studio` sin borrar perfiles antiguos. El acceso se llama **NVIDIA Commands for Linux**. Comprueba los archivos con `SHA256SUMS` de la release.
 
-```sh
-./DLSS-Studio-1.0.0-x86_64.AppImage --appimage-extract-and-run
-```
+## Opciones incluidas
 
-### DEB
+- **DLSS SR/DLAA:** J/K · 4.0, L/M · 4.5, automático/históricos, calidad independiente y escala interna personalizada 33–100 %.
+- **Ray Reconstruction:** modelo, modo y escala independientes; necesita integración en el juego.
+- **FG/MFG:** RTX 40: FG 2×; RTX 50: hasta 6× y MFG dinámico. El modo dinámico genera el valor DRS `dynamic` correcto.
+- **Smooth Motion:** interpolación del driver; bases documentadas RTX 50 **580.65.06+**, RTX 40 **580.95.05+**, capa `VK_LAYER_NV_present` y Vulkan x86_64. No combinar con FG integrado.
+- **Nitidez NVIDIA:** filtro OpenGL/Vulkan, intensidad y reducción de grano; base documentada R595+. No activa escalado NIS.
+- **Latencia/FPS:** puente Reflex Vulkan opcional, reducción de latencia DXVK, límites DXVK/VKD3D y VSync según API.
+- **Texturas/pantalla:** anisotropía DXVK/OpenGL, LOD bias DXVK, señalización HDR nativo DXVK; VRR, multihilo, caché de shaders y permiso FXAA para OpenGL.
+- **Indicadores:** DXVK HUD, MangoHud externo, indicador gráfico NVIDIA e indicadores DLSS con opción explícita para quitarlos.
+- **GPU híbrida:** PRIME render offload opcional.
+- **Gamescope opcional:** NIS/FSR 1 espacial y supersampling para Steam. No equivalen a DSR/DLDSR del driver ni a DLSS temporal. Se bloquea la combinación automática con Smooth Motion para no activar la capa sobre el compositor.
 
-Abre el archivo con el instalador de paquetes de tu distribución. Se instala en
-`/opt/dlss-studio` y añade **DLSS Studio** al menú de aplicaciones.
-El paquete solo declara glibc como dependencia del sistema; las dependencias
-propias de la aplicación ya están dentro. No instala controladores ni usa pip.
+Los juegos **nativos de Linux no admiten estos overrides de presets DLSS**. Al elegir API nativa se dejan las selecciones exclusivas de Proton controladas por el juego. Vulkan nativo admite el indicador SR temporal y las opciones compatibles del controlador.
 
-Puedes verificar la descarga con `SHA256SUMS`, disponible en la misma publicación:
+![Ajustes Linux filtrados según la GPU detectada](docs/linux-options.png)
 
-```sh
-sha256sum -c SHA256SUMS
-```
+## Steam
 
-## Uso
+1. Selecciona **Steam · por juego** y la API real del juego.
+2. Elige ajustes. En **Más opciones** puedes conservar parámetros actuales sencillos.
+3. Copia en Steam → Propiedades del juego → General → Parámetros de lanzamiento.
+4. Activa las funciones integradas dentro del juego. Para Smooth Motion, desactiva FG en el juego.
 
-1. La GPU se detecta automáticamente y aparece discretamente en la barra lateral.
-2. Elige tecnología y preset: **J/K · DLSS 4.0**, **L/M · DLSS 4.5**.
-3. Ajusta opcionalmente Calidad/Rendimiento, independientemente del modelo.
-4. En **Más opciones**, conserva tus parámetros actuales o desactiva el actualizador NGX.
-5. Pulsa **Copiar para Steam** y pega en Propiedades → General → Parámetros de lanzamiento.
-6. Activa la tecnología dentro del juego cuando corresponda.
+Se genera un único `%command%`; se conservan argumentos, wrappers y ajustes ajenos cuando pueden combinarse. Las entradas complejas/conflictivas se rechazan: nunca se ejecutan.
 
-Una sola pantalla, sin perfiles, formularios de contexto ni páginas de wiki.
-La compatibilidad FG/MFG se valida automáticamente según la familia de GPU.
+## Epic oficial Linux Preview — por sesión, experimental
 
-## Incluido
+Se investigó el cliente oficial nativo **0.109.0+ge564459**. Su campo por juego es de **argumentos adicionales**, no de comandos Steam.
 
-- Super Resolution/DLAA: modelos J/K, L/M, automático e históricos.
-- Ray Reconstruction: modelos y generación identificados independientemente de SR.
-- Frame Generation: FG, MFG y modo dinámico según hardware compatible.
-- FG de NVIDIA bloqueado en RTX 20/30; MFG y dinámico requieren RTX 50.
-- Conservación de parámetros existentes, combinación de ajustes DRS y detección de conflictos.
-- Catálogo offline con referencias; la app no ejecuta el comando que genera.
+1. Selecciona **Epic oficial · sesión del launcher** y su AppImage/binario mediante una ruta absoluta.
+2. Opcionalmente pega un enlace `com.epicgames.launcher://apps/…` del juego.
+3. Cierra Epic completamente y ejecuta el comando generado **en una terminal**. Sus variables afectan a **toda esa sesión**, no a un perfil aislado por juego.
+4. Si hay argumentos del juego, usa **Copiar argumentos Epic** y pégalos por separado en los ajustes del juego.
+
+Nunca se envía `%command%` a Epic. Los wrappers Steam se bloquean; no se envuelve el launcher como si fuera el juego. **La herencia de variables hasta un juego con cuenta no se ha verificado**. Los parámetros de Proton dependen del runtime que use realmente Epic. [Investigación y límites](docs/es/EPIC.md).
 
 ## Alcance
 
-La generación indicada es la del modelo/función solicitados, no una certificación
-de la DLL o modelo cargado dentro del juego. La aplicación del preset depende
-del juego, Proton, NGX, DXVK-NVAPI y el controlador. No se ha verificado dentro de un juego.
+Generador local y sin conexión: no inicia juegos, modifica Steam/Epic, sustituye DLL, instala controladores ni accede a credenciales. El actualizador NGX de Proton puede descargar componentes cuando lances el juego. Los indicadores DLSS bajo Wine persisten en el registro del prefijo: ejecuta una vez un comando con **Desactivar indicador** para quitarlos.
 
-Las letras históricas CNN se muestran como **DLSS 2.x / 3.x**, sin atribuirles una
-versión exacta. En RR transformer se indica **familia DLSS 4.0+**, sin equiparar
-las letras de tecnologías diferentes. Automático no fija una generación concreta.
+No se dispone de prueba física con RTX 5070 ni de verificación de modelos/FPS dentro de juegos. Las pruebas RTX 5070 son simuladas; la detección real se comprobó con RTX 2060. [Verificación](docs/VERIFICATION.md).
 
-El actualizador NGX de Proton puede descargar componentes al iniciar el juego;
-se puede desactivar en **Más opciones**. La app en sí no instala esos componentes.
-Las cadenas complejas de shell no se ejecutan ni se reinterpretan silenciosamente.
-En equipos multi-GPU se muestra la primera fila de `nvidia-smi` y se avisa.
+La [comparación completa con NVIDIA App](docs/es/RESEARCH.md) distingue las funciones añadidas de RTX HDR, Freestyle, DLDSR, optimización automática, ShadowPlay, gestión de drivers, calibración y overclock. Estas últimas no se presentan como variables Linux equivalentes.
 
 ## Desarrollo
 
-Python 3.10+ y PySide6 o PyQt6:
+Python 3.10+ con PySide6 o PyQt6:
 
 ```sh
 python3 -m venv .venv
@@ -102,15 +84,6 @@ python3 -m venv .venv
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m unittest discover -s tests -v
 ```
 
-Acceso al menú para desarrollo, sin sudo: `python3 tools/install_user.py`.
+[Construcción](docs/es/BUILD.md) · [Investigación](docs/es/RESEARCH.md) · [Epic](docs/es/EPIC.md) · [Licencias](THIRD_PARTY_ES.md).
 
-- [Construcción de AppImage y DEB, requisitos y comprobaciones](docs/es/BUILD.md).
-- `dlss_studio/core.py`: hardware, validación y generación del comando.
-- `dlss_studio/ui.py`: interfaz Qt.
-- `tools/build_catalog.py`: generador del catálogo; revisar las fuentes antes de modificarlo.
-- `docs/sources/`: referencias técnicas y evidencia del catálogo.
-
-## Licencia
-
-Código propio: [BSD-3-Clause](LICENSE). Dependencias y referencias técnicas:
-[componentes de terceros](THIRD_PARTY_ES.md). Las marcas pertenecen a sus titulares.
+Código original [BSD-3-Clause](LICENSE). Se conserva el icono proporcionado por el propietario. La release e historial DLSS Studio 1.0.0 siguen disponibles.

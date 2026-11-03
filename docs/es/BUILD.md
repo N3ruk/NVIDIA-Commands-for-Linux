@@ -2,10 +2,10 @@
 
 [English](../BUILD.md)
 
-## Paquetes de la versión 1.0.0
+## Paquetes de la versión 2.0.0
 
-- `DLSS-Studio-1.0.0-x86_64.AppImage`: portable, Python y Qt incluidos.
-- `dlss-studio_1.0.0_amd64.deb`: instalación autónoma en `/opt/dlss-studio`.
+- `NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage`: portable, Python y Qt incluidos.
+- `nvidia-commands-for-linux_2.0.0_amd64.deb`: instalación autónoma en `/opt/nvidia-commands-for-linux`.
 - `SHA256SUMS`: huellas de ambos paquetes.
 - `build-info.json`: versiones del constructor y requisitos del sistema.
 
@@ -53,8 +53,8 @@ que dos compilaciones diferentes sean idénticas byte a byte.
 ## Comprobaciones
 
 ```sh
-QT_QPA_PLATFORM=offscreen ./dist/DLSS-Studio-1.0.0-x86_64.AppImage --self-test
-./dist/DLSS-Studio-1.0.0-x86_64.AppImage --version
+QT_QPA_PLATFORM=offscreen ./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --self-test
+./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --version
 (cd dist && sha256sum -c SHA256SUMS)
 ```
 
@@ -63,11 +63,19 @@ portapapeles: no certifica la GPU real ni un modelo cargado dentro de un juego.
 Para comprobar detección real e interfaz:
 
 ```sh
-./dist/DLSS-Studio-1.0.0-x86_64.AppImage --screenshot artifacts/preview.png
+./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --screenshot artifacts/preview.png
 ```
 
 Si FUSE no está disponible, el runtime admite `--appimage-extract-and-run`.
 Para pruebas offline del DEB, se puede instalar dentro de otro Ubuntu Base limpio
-y ejecutar `QT_QPA_PLATFORM=offscreen dlss-studio --self-test` sin instalar Python/Qt.
+y ejecutar `QT_QPA_PLATFORM=offscreen nvidia-commands-for-linux --self-test` sin instalar Python/Qt.
 Los plugins X11 y Wayland están incluidos; el adaptador de apariencia GTK no es
 necesario porque la app usa su propio estilo Fusion y no se distribuye.
+
+## Verificación en otra base limpia
+
+```sh
+python3 tools/verify_portable.py
+```
+
+Usa otra Ubuntu Base sin Python/Qt, con red aislada y sin montar directorios del host. El DEB se instala y purga solo dentro de esa base. Rechaza una raíz de verificación ya existente. Ver [resultados y límites](../VERIFICATION.md).

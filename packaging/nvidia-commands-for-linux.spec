@@ -19,14 +19,14 @@ for pattern in patterns:
 a = Analysis(
     [str(root / 'packaging/entry.py')], pathex=[str(root)],
     binaries=list(extra.values()),
-    datas=[(str(root / 'dlss_studio/data'), 'dlss_studio/data'),
-           (str(root / 'dlss_studio/assets'), 'dlss_studio/assets')],
+    datas=[(str(root / 'nvidia_commands/data'), 'nvidia_commands/data'),
+           (str(root / 'nvidia_commands/assets'), 'nvidia_commands/assets')],
     hiddenimports=[], hookspath=[], hooksconfig={}, runtime_hooks=[],
     excludes=['PyQt6', 'PyQt5', 'PySide2', 'tkinter', 'unittest', 'pytest'],
     noarchive=False,
 )
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='dlss-studio',
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='nvidia-commands-for-linux',
           debug=False, bootloader_ignore_signals=False, strip=False,
           upx=False, console=True)
-coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='dlss-studio')
+coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='nvidia-commands-for-linux')

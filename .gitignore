@@ -10,5 +10,7 @@ artifacts/
 *.AppImage
 *.deb
 .venv-build/
-core
-core.*
+/core
+/core.*
+
+.cache/

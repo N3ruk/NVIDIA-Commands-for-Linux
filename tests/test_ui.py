@@ -2,9 +2,9 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import unittest
 from unittest.mock import patch
-from dlss_studio.qt import QApplication
-from dlss_studio.ui import MainWindow, pick
-from dlss_studio.core import Hardware
+from nvidia_commands.qt import QApplication
+from nvidia_commands.ui import MainWindow, pick
+from nvidia_commands.core import Hardware
 
 class InterfaceTests(unittest.TestCase):
     @classmethod
@@ -12,7 +12,7 @@ class InterfaceTests(unittest.TestCase):
         cls.app = QApplication.instance() or QApplication([])
 
     def setUp(self):
-        self.dialogs = patch("dlss_studio.ui.QMessageBox.warning", side_effect=AssertionError("Diálogo inesperado"))
+        self.dialogs = patch("nvidia_commands.ui.QMessageBox.warning", side_effect=AssertionError("Diálogo inesperado"))
         self.dialogs.start()
         self.window = MainWindow(Hardware("NVIDIA GeForce RTX 2060", "rtx20", "595.99.02", "6144 MiB"))
         self.window.show()
@@ -24,7 +24,7 @@ class InterfaceTests(unittest.TestCase):
         self.app.processEvents()
 
     def detect(self, family, name):
-        with patch("dlss_studio.ui.detect_hardware", return_value=Hardware(name, family, "595.99.02")):
+        with patch("nvidia_commands.ui.detect_hardware", return_value=Hardware(name, family, "595.99.02")):
             self.window.redetect_hardware()
 
     def test_initial_real_gpu_and_command(self):

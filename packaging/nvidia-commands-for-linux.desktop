@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=NVIDIA Commands for Linux
+GenericName=Comandos gráficos NVIDIA para Linux
+Comment=DLSS, Smooth Motion y ajustes gráficos para Steam y Epic
+Exec=nvidia-commands-for-linux
+Icon=nvidia-commands-for-linux
+Terminal=false
+Categories=Game;Utility;
+Keywords=DLSS;NVIDIA;Proton;Steam;Epic;Smooth Motion;
+StartupNotify=true
+StartupWMClass=nvidia-commands-for-linux

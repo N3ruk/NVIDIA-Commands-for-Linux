@@ -2,10 +2,10 @@
 
 [Español](es/BUILD.md) · [Home](../README.md)
 
-## Release 1.0.0 packages
+## Release 2.0.0 packages
 
-- `DLSS-Studio-1.0.0-x86_64.AppImage`: portable, Python and Qt included.
-- `dlss-studio_1.0.0_amd64.deb`: self-contained installation under `/opt/dlss-studio`.
+- `NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage`: portable, Python and Qt included.
+- `nvidia-commands-for-linux_2.0.0_amd64.deb`: self-contained installation under `/opt/nvidia-commands-for-linux`.
 - `SHA256SUMS`: package hashes.
 - `build-info.json`: builder versions and system requirements.
 
@@ -39,15 +39,23 @@ The AppImage runtime is SHA256-pinned. Changes to the `continuous` download stop
 ## Checks
 
 ```sh
-QT_QPA_PLATFORM=offscreen ./dist/DLSS-Studio-1.0.0-x86_64.AppImage --self-test
-./dist/DLSS-Studio-1.0.0-x86_64.AppImage --version
+QT_QPA_PLATFORM=offscreen ./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --self-test
+./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --version
 (cd dist && sha256sum -c SHA256SUMS)
 ```
 
 The self-test uses a simulated GPU to check presets and clipboard only; it does not certify real hardware or an in-game model. For real detection and a screenshot:
 
 ```sh
-./dist/DLSS-Studio-1.0.0-x86_64.AppImage --screenshot artifacts/preview.png
+./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --screenshot artifacts/preview.png
 ```
 
-Without FUSE, add `--appimage-extract-and-run`. Offline DEB testing can use another clean Ubuntu Base with `QT_QPA_PLATFORM=offscreen dlss-studio --self-test`, without installing Python/Qt. X11 and Wayland plugins are included; the GTK appearance adapter is omitted because the application uses its own Fusion style.
+Without FUSE, add `--appimage-extract-and-run`. Offline DEB testing can use another clean Ubuntu Base with `QT_QPA_PLATFORM=offscreen nvidia-commands-for-linux --self-test`, without installing Python/Qt. X11 and Wayland plugins are included; the GTK appearance adapter is omitted because the application uses its own Fusion style.
+
+## Independent clean-base verification
+
+```sh
+python3 tools/verify_portable.py
+```
+
+Uses a separate generated Ubuntu Base without Python/Qt, isolated network and no host directories. Installs/purges the DEB only there. The helper refuses an existing verification root; preserve/archive that generated tree before a repeat. See [verification](../docs/VERIFICATION.md) for actual results and remaining unknowns.

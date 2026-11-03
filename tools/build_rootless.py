@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tarfile
 import urllib.request
+import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'build/portable'
@@ -34,6 +35,9 @@ def main():
         BASE.mkdir(parents=True, exist_ok=True)
         # Official archive, verified above; preserve its absolute symlinks.
         subprocess.run(['tar', '--no-same-owner', '-xzf', str(archive), '-C', str(BASE)], check=True)
+    machine_id = BASE / 'etc/machine-id'
+    if not machine_id.exists() or len(machine_id.read_text().strip()) != 32:
+        machine_id.write_text(uuid.uuid4().hex + '\n')
     resolver = BASE / 'etc/resolv.conf'
     if resolver.is_symlink():
         resolver.unlink()

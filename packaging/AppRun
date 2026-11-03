@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 APP_BASE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-export FONTCONFIG_FILE="$APP_BASE/usr/lib/dlss-studio/_internal/fonts.conf"
-export QT_QPA_FONTDIR="$APP_BASE/usr/lib/dlss-studio/_internal/fonts"
+export FONTCONFIG_FILE="$APP_BASE/usr/lib/nvidia-commands-for-linux/_internal/fonts.conf"
+export QT_QPA_FONTDIR="$APP_BASE/usr/lib/nvidia-commands-for-linux/_internal/fonts"
 # PyInstaller configures its private library/plugin search paths itself.
 # Do not alter the working directory or the user's launch arguments.
-exec "$APP_BASE/usr/lib/dlss-studio/dlss-studio" "$@"
+exec "$APP_BASE/usr/lib/nvidia-commands-for-linux/nvidia-commands-for-linux" "$@"
