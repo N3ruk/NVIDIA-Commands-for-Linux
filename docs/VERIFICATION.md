@@ -10,6 +10,8 @@
 | Hardware detection | Real NVIDIA GeForce RTX 2060, driver 595.99.02; also verified from frozen AppImage screenshot |
 | Other GPU families | Unit/UI fixtures, including RTX 5070/RTX 40, driver versions and layer presence; **simulated, not physical hardware** |
 | AppImage, normal execution | `--self-test`, `--version` and real-detection screenshot passed on the host; no host installation |
+| Host graphical backends | Packaged self-test passed with `QT_QPA_PLATFORM=xcb` and `wayland`; test processes exited (a transient executor cleanup warning was checked against the process table) |
+| GitHub CI | [Run 41613508866](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/actions/runs/41613508866): build and independent clean-base install/purge jobs both passed for code commit `680e850381275040c59417ffce793c2552e3e815` |
 | AppImage without FUSE | Extract-and-run self-test passed in separate clean Ubuntu Base 22.04.5 |
 | DEB | Installed, self-tested, version-checked and purged **inside an isolated Ubuntu Base**, not on the host |
 | Base independence | No `/usr/bin/python3` or system Qt6 in the verification base before installing/running; host directories not mounted; network namespace unshared |
@@ -39,6 +41,6 @@ The rootless build initially failed because the fresh base lacked a D-Bus machin
 - No authenticated Epic game was launched. **Epic environment propagation remains experimental/session-wide**, not verified per-game profiles.
 - Optional Gamescope/MangoHud were not installed or runtime-certified; commands and published requirements were checked.
 - The native/Proton game runtime, anti-cheat, compositor HDR/VRR support and game-integrated features remain external requirements.
-- X11/Wayland plugin bundling is not a claim that every compositor or Linux distribution was tested. glibc 2.35+/x86_64 is an ABI target, not universal distro support.
+- The host X11/Wayland self-tests are not a claim that every compositor or Linux distribution was tested. glibc 2.35+/x86_64 is an ABI target, not universal distro support.
 
 Reproduce with `python3 tools/build_rootless.py`, then `python3 tools/verify_portable.py` (requires a fresh generated verification-root path; the helper refuses to overwrite an existing one). Detailed local evidence stays in ignored `.cache/` and `build/portable/`; no Epic binary, account data or build root is published.
