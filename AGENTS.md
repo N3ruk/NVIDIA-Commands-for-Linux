@@ -42,11 +42,11 @@
 - Escalas DLSS personalizadas: 33–100 %. MFG dinámico: NGX_DLSSG_MODE=dynamic. Conteo DRS: multiplicador menos uno.
 - Investigación, fuentes, límites y verificación en docs/RESEARCH.md, docs/EPIC.md y docs/VERIFICATION.md.
 
-## Revisión de interfaz 2.0.0 — Carlos, 2026-11-03
+## Interfaz 2.0.0 — Carlos, 2026-11-03
 
 - Sin selector Destino ni formulario de arranque Epic. Comando Steam y «Argumento Epic» en columnas paralelas con copia independiente.
 - No presentar variables como argumentos Epic: solo extraer argumentos reales tras %command%; explicar la falta de equivalencia.
 - Reset deja todas las tecnologías controladas por el juego, parámetros vacíos y ambos comandos vacíos; no restaura K ni actualizador automáticamente.
-- Retirados de la interfaz Gamescope/escalado externo, HUD externos, PRIME y señalización HDR genérica. No reintroducirlos: pertenecen a SteamCommandGen. La composición interna histórica se conserva por compatibilidad, no se ofrece como control.
+- Sin controles de Gamescope/escalado externo, HUD externos, PRIME ni señalización HDR genérica. No incorporarlos: pertenecen a SteamCommandGen. La composición interna histórica se conserva por compatibilidad, no se ofrece como control.
 - Cada variable/ajuste DRS/DXVK debe describir su efecto y el valor elegido; señalar explícitamente los parámetros importados desconocidos.
 - Publicación 2.0.0: mantener código, etiqueta, paquetes, documentación y versión instalada sincronizados; verificar las evidencias del mismo código publicado.

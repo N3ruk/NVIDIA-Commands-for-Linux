@@ -17,7 +17,7 @@ The checks below cover the current parallel Steam/Epic output interface, Reset, 
 | ABI audit | **241 ELF files**, maximum required GLIBC symbol version **2.35** |
 | Package hashes | Both SHA256SUMS entries passed in the clean verification base |
 | Installed host package | **2.0.0 installed**, packaged self-test and `dpkg -V` integrity check passed |
-| GitHub CI | [Build and clean-base workflow](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/actions/workflows/build-linux.yml) |
+| GitHub CI | [Run 41621240735](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/actions/runs/41621240735): build and independent clean-base install/purge passed for code commit `2c2ac9e045c08b04c53731db1e851b07307bb7a1` |
 
 Real hardware detection was checked on **NVIDIA GeForce RTX 2060 / driver 595.99.02**. RTX 5070/RTX 40 and other GPU families in tests use simulated fixtures, not physical hardware. Real-GPU screenshots show parallel command outputs and the dark/green interface.
 
