@@ -1,0 +1,48 @@
+{
+  "reviewed": "2026-11-19",
+  "scope": "Launch command dependencies and NVIDIA Steam/Linux capability audit",
+  "sources": [
+    {
+      "id": "drs",
+      "url": "https://raw.githubusercontent.com/wiki/jp7677/dxvk-nvapi/Passing-driver-settings.md",
+      "sha256": "d47db0e3884dc115d539fb12cf1dda74b39c73717ff832701146989210408f2c",
+      "bytes": 15207
+    },
+    {
+      "id": "nvapi",
+      "url": "https://raw.githubusercontent.com/jp7677/dxvk-nvapi/master/README.md",
+      "sha256": "86cbcf9ae6f9afc20576b67122e72f31e049358e603a9d3a9429c2aafebf7fe8",
+      "bytes": 20594
+    },
+    {
+      "id": "smooth",
+      "url": "https://download.nvidia.com/XFree86/Linux-x86_64/595.99.02/README/nvpresent.html",
+      "sha256": "14d292eb0d0f65fae3bdd8c0f2efbca2d9c06d58e4bb999ea59274cc2040bdd5",
+      "bytes": 3606
+    },
+    {
+      "id": "opengl",
+      "url": "https://download.nvidia.com/XFree86/Linux-x86_64/595.99.02/README/openglenvvariables.html",
+      "sha256": "7ea6970dad25029e71f22aa8d3f07f372b5e4e3fcbfd27a3dffade2912a3e823",
+      "bytes": 24134
+    },
+    {
+      "id": "ngx",
+      "url": "https://download.nvidia.com/XFree86/Linux-x86_64/595.99.02/README/ngx.html",
+      "sha256": "b8c0ee06f2fd33c8f722a95a025203e71c522114142d79ef4b3a12e686c005fd",
+      "bytes": 6102
+    },
+    {
+      "id": "proton",
+      "url": "https://raw.githubusercontent.com/ValveSoftware/Proton/proton_11.0/proton",
+      "sha256": "a4f94c208355639c87877ba63e8faf1f26d8c0731db04f722dee66cdfcfbf478",
+      "bytes": 94468
+    },
+    {
+      "id": "nvapi-settings",
+      "url": "https://raw.githubusercontent.com/NVIDIA/nvapi/main/NvApiDriverSettings.h",
+      "sha256": "95ffda903832840343a81189e052a0756774bd92e4b37f2dc49598d493f951d4",
+      "bytes": 77808
+    }
+  ]
+}

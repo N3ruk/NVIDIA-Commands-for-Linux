@@ -1,7 +1,5 @@
-# NVIDIA Commands for Linux 2.0.0
+# NVIDIA Commands for Linux 2.1.0
 
-[English](../VERIFICATION.md) · [Inicio](../../README_ES.md)
+[English](../ESTADO.md) · [Inicio](../../README_ES.md)
 
-Current verification / Verificación actual: [VERIFICATION.md](../VERIFICATION.md).
-
-Previously DLSS Studio 1.0.0. Historical verification is not proof of current runtime/game compatibility.
+Cambios respecto a 2.0.0: [CHANGELOG.md](../../CHANGELOG.md#español). Auditoría: [AUDITORIA-2026-11-19.md](AUDITORIA-2026-11-19.md). Verificación: [VERIFICATION.md](../VERIFICATION.md).

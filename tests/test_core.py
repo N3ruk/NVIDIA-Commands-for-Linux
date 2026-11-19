@@ -11,7 +11,7 @@ from nvidia_commands.core import (CATALOG, Config, Selection, ProfileStore, comp
 
 class CommandTests(unittest.TestCase):
     def test_rtx2060_k(self):
-        result = generate(Config())
+        result = generate(Config(sr=Selection("K")))
         self.assertFalse(result.errors)
         self.assertEqual(result.command.count("%command%"), 1)
         self.assertEqual(result.settings["NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION"], "render_preset_k")
@@ -91,7 +91,7 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(result.command.count("%command%"), 1)
 
     def test_merge_unrelated_drs_and_replace_selected(self):
-        cfg = Config(existing='DXVK_NVAPI_DRS_SETTINGS="OTHER_SETTING=7,NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_m" '
+        cfg = Config(sr=Selection('K'), existing='DXVK_NVAPI_DRS_SETTINGS="OTHER_SETTING=7,NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_m" '
                     'DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_l %command%')
         result = generate(cfg)
         self.assertFalse(result.errors)
@@ -125,11 +125,12 @@ class CommandTests(unittest.TestCase):
         self.assertIn("NGX_DLSS_FG_OVERRIDE=on", result.command)
         self.assertTrue(any("no controlados" in w for w in result.warnings))
 
-    def test_updater_disabled_does_not_delete_existing_options(self):
-        result = generate(Config(updater=False, existing="PROTON_ENABLE_NGX_UPDATER=1 %command%"))
+    def test_preserve_explicit_updater_and_require_it_for_selected_models(self):
+        result = generate(Config(existing="PROTON_ENABLE_NGX_UPDATER=1 %command%"))
         self.assertIn("PROTON_ENABLE_NGX_UPDATER=1", result.command)
-        plain = generate(Config(updater=False))
-        self.assertNotIn("PROTON_ENABLE_NGX_UPDATER", plain.command)
+        selected = generate(Config(sr=Selection("K"), existing="PROTON_ENABLE_NGX_UPDATER=0 %command%"))
+        self.assertEqual(selected.environment["PROTON_ENABLE_NGX_UPDATER"], "1")
+        self.assertNotIn("PROTON_ENABLE_NGX_UPDATER", generate(Config()).command)
 
     def test_detect_proton_does_not_offer_anticheat_runtimes(self):
         with tempfile.TemporaryDirectory() as temp:

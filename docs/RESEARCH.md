@@ -1,39 +1,41 @@
 # NVIDIA App → Linux capability audit
 
-[Español](es/RESEARCH.md) · [Home](../README.md) · Reviewed 2026-11-03
+**2.1.0 capability matrix.** Changes and new-key findings: [2026-11-19 audit](AUDIT-2026-11-19.md). General tuning controls from 2.0.0 have been removed.
+
+[Español](es/RESEARCH.md) · [Home](../README.md) · Reviewed 2026-11-19
 
 Reference GPU: GeForce RTX 5070 (Blackwell, RTX 50). Hardware eligibility is not evidence that a particular game, component version or compositor accepts an override. NVIDIA App itself is a Windows application; this project is a command composer, not a port of that application.
 
 ## Coverage matrix
 
-| NVIDIA App / graphics feature | Linux route / outcome in 2.0.0 |
+| NVIDIA App / graphics feature | Linux route / outcome in 2.1.0 |
 | --- | --- |
 | DLSS SR / model presets / DLAA | DXVK-NVAPI DRS, Proton games with DLSS integration; retained and extended with custom 33–100% scale |
 | Ray Reconstruction | Independent RR DRS models/modes/scaling; integration required, not a general RT enable switch |
 | Frame Generation | RTX 40/50 plus game/runtime support; hardware gate retained |
 | Multi Frame Generation / dynamic MFG | RTX 50, recent components; fixed 2–6× / dynamic up to 6×; mode and generated-frame counts validated |
-| DLSS component updates | Optional `PROTON_ENABLE_NGX_UPDATER=1`; actual download handled by Proton; no native library replacement |
+| DLSS component updates | Required with preset/model requests; optional update-only `PROTON_ENABLE_NGX_UPDATER=1`. Downloads handled by Proton; no native library replacement |
 | Native Linux DLSS preset overrides | Not supported by the documented native route; Proton-only controls hidden/reset for native games |
 | Smooth Motion | `NVPRESENT_ENABLE_SMOOTH_MOTION=1`; Vulkan layer, RTX 50 documented at 580.65.06, RTX 40 at 580.95.05; x86_64 baseline |
 | Smooth Motion overlay workaround | Optional `NVPRESENT_QUEUE_FAMILY=1`, with a performance caveat |
 | Reflex | DXVK-NVAPI forwards integrated DirectX Reflex; optional Vulkan bridge requires its layer. Does not add Reflex to games without it. Modern winevulkan can offer a separate direct-extension route |
-| Low Latency Mode | DXVK `dxvk.latencySleep` alternative for D3D9–11, not a universal NVIDIA ULL override |
-| Max Frame Rate | DXVK D3D9/DXGI limiter or `VKD3D_FRAME_RATE`; rendered FPS, not an MFG target |
-| Vertical sync | DXVK sync intervals; NVIDIA OpenGL `__GL_SYNC_TO_VBLANK`; no fake universal Vulkan/DX12 override |
-| Adaptive sync / G-SYNC | `__GL_VRR_ALLOWED` permission for OpenGL; display/compositor must already support/configure VRR |
-| Anisotropic filtering | DXVK D3D9/11 sampler override or NVIDIA OpenGL log-anisotropy; not a DX12/Vulkan override |
-| Texture LOD bias | DXVK D3D9/11; negative values can shimmer |
+| Low Latency Mode | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Max Frame Rate | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Vertical sync | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Adaptive sync / G-SYNC | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Anisotropic filtering | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Texture LOD bias | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
 | Image sharpening | R595 documented `__GL_SHARPEN_ENABLE`, value and film-grain control, OpenGL/Vulkan |
 | NVIDIA Image Scaling | Not offered by this generator; Gamescope NIS v1.0.3 is a separate spatial-upscaling alternative, not the Windows driver UI feature |
 | DSR / DLDSR | No verified equivalent driver launch setting; Gamescope supersampling is a separate alternative, not offered here and explicitly not DLDSR |
 | FSR spatial scaling | Not offered here; Gamescope FSR 1 is a separate spatial-scaling alternative, distinct from DLSS, FSR 2/3 and frame generation |
-| FXAA / MSAA / MFAA | OpenGL FXAA permission only when the driver profile already enables FXAA. No fake force-AA toggle. FSAA depends on driver/profile application-control state; no general DX12/temporal-AA override |
-| Threaded optimization | `__GL_THREADED_OPTIMIZATIONS` for OpenGL only |
-| Shader disk cache | `__GL_SHADER_DISK_CACHE` for OpenGL; no cache deletion, no Steam precache control |
+| FXAA / MSAA / MFAA | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Threaded optimization | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
+| Shader disk cache | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
 | HDR game output | Not offered by this generator; native HDR requires game/runtime/display/compositor setup, separate from RTX HDR |
 | RTX HDR / SDR-to-HDR | Not implemented; native HDR signaling is not RTX HDR |
 | Freestyle / RTX Dynamic Vibrance / Ansel / Photo Mode | No verified interchangeable Linux driver launch-variable route; not exposed as equivalent |
-| FPS/performance overlay | NVIDIA graphics indicator and DLSS indicators; external DXVK HUD/MangoHud are not offered here. Not Reflex Analyzer or NVIDIA's overlay |
+| FPS/performance overlay | Removed from the interface in 2.1.0; historical internal composition retained for compatibility. |
 | Actual DLSS model indicator | Wine NGX registry indicators (persistent, explicit disable); native Vulkan SR indicator via `__NGX_SHOW_INDICATOR` (temporary) |
 | Preferred GPU / hybrid systems | Real GPU detection, no GPU spoofing; PRIME offload is external and not offered as a control |
 | Optimal settings / cloud game optimization | No access to NVIDIA App's Windows profiles/cloud optimization; no invented recommendations per game |

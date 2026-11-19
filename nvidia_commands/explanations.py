@@ -69,7 +69,7 @@ def describe_dxvk(key, value):
 def describe_environment(key, value):
     enabled = 'Activa' if value == '1' else 'Desactiva'
     descriptions = {
-        'PROTON_ENABLE_NGX_UPDATER': 'Solicita a Proton la descarga/actualización de componentes NVIDIA NGX compatibles al iniciar el juego. No instala un controlador ni garantiza que el juego use el modelo elegido.',
+        'PROTON_ENABLE_NGX_UPDATER': 'Permite a Proton descargar/actualizar componentes NVIDIA NGX compatibles al iniciar el juego. Se incluye automáticamente con los presets para que una DLL antigua no impida solicitar el modelo nuevo. No fija una versión de DLSS, no cambia la calidad ni activa FG/RR por sí solo; la aplicación efectiva debe comprobarse en el juego.',
         'NVPRESENT_ENABLE_SMOOTH_MOTION': f'{enabled} Smooth Motion: la capa NVIDIA Vulkan interpola fotogramas aunque el juego no integre DLSS FG. Necesita RTX 40/50, controlador compatible y VK_LAYER_NV_present. No combinar con FG.',
         'NVPRESENT_QUEUE_FAMILY': 'Selecciona la cola gráfica para la presentación de Smooth Motion (valor 1), como alternativa de compatibilidad con overlays. Puede reducir el rendimiento.',
         'DXVK_NVAPI_VKREFLEX': 'Habilita el puente de Reflex para juegos Windows/Vulkan mediante DXVK-NVAPI. Necesita integración Reflex en el juego y una capa compatible; no fuerza Reflex en juegos sin soporte.',

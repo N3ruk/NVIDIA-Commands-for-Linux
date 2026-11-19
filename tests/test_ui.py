@@ -30,7 +30,9 @@ class InterfaceTests(unittest.TestCase):
     def test_initial_real_gpu_and_command(self):
         self.assertEqual(self.window.config().gpu, "rtx20")
         self.assertIn("RTX 2060", self.window.hardware_label.text())
-        self.assertIn("render_preset_k", self.window.command.toPlainText())
+        self.assertEqual(self.window.command.toPlainText(), "")
+        pick(self.window.panels["sr"].models, "K")
+        self.assertIn("PROTON_ENABLE_NGX_UPDATER=1", self.window.command.toPlainText())
         self.assertNotIn("NGX_DLSS_RR_OVERRIDE", self.window.command.toPlainText())
         self.assertFalse(self.window.tabs.isTabVisible(2))
         self.assertTrue(self.window.copy_button.isEnabled())
@@ -69,7 +71,7 @@ class InterfaceTests(unittest.TestCase):
             pick(rr.models, key)
             self.assertIn("DLSS 4+", rr.generation.text())
             self.assertIn("versión exacta", rr.description.toPlainText())
-        self.assertEqual(self.window.panels["sr"].models.currentData(), "K")
+        self.assertEqual(self.window.panels["sr"].models.currentData(), "game")
 
     def test_change_preset_mode_and_copy(self):
         pick(self.window.panels["sr"].models, "M")
@@ -81,6 +83,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(text.count("%command%"), 1)
 
     def test_gpu_does_not_change_sr_command_syntax(self):
+        pick(self.window.panels["sr"].models, "K")
         command = self.window.command.toPlainText()
         self.detect("rtx50", "NVIDIA GeForce RTX 5090")
         self.assertEqual(command, self.window.command.toPlainText())
@@ -108,6 +111,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertIn("DLSS 3+", fg.generation.text())
 
     def test_unsupported_fg_is_browsable_without_activating_it(self):
+        pick(self.window.panels["sr"].models, "K")
         self.window.show_unsupported.setChecked(True)
         self.assertTrue(self.window.tabs.isTabVisible(2))
         fg = self.window.panels["fg"]
@@ -116,6 +120,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertTrue(self.window.copy_button.isEnabled())
 
     def test_switching_to_incompatible_hardware_can_recover(self):
+        pick(self.window.panels["sr"].models, "K")
         self.detect("rtx50", "NVIDIA GeForce RTX 5090")
         pick(self.window.panels["fg"].fg_mode, "dynamic")
         self.detect("rtx20", "NVIDIA GeForce RTX 2060")
@@ -125,6 +130,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertTrue(self.window.copy_button.isEnabled())
 
     def test_unknown_gpu_detection_can_recover(self):
+        pick(self.window.panels["sr"].models, "K")
         self.detect("unknown", "GPU no identificada")
         self.assertFalse(self.window.copy_button.isEnabled())
         self.assertTrue(self.window.retry_detection.isVisible())

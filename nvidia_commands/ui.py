@@ -161,7 +161,7 @@ class TechPanel(QWidget):
         outer.addWidget(controls, 4)
         outer.addWidget(self.description, 6)
         self.models.currentIndexChanged.connect(changed)
-        self.populate(False, "K" if tech == "sr" else "game")
+        self.populate(False, "game")
 
     def populate(self, advanced, selected=None):
         key = selected or self.models.currentData() or "game"
@@ -222,114 +222,108 @@ class TechPanel(QWidget):
             self.scale.setText("Calidad prioriza detalle; Rendimiento prioriza FPS. "
                                "El preset cambia el modelo, no la resolución del juego.")
 
-class LinuxPanel(QWidget):
-    """API-specific controls, kept separate from the DLSS model selectors."""
-    def __init__(self, changed):
+class DriverTechnologyPanel(QWidget):
+    """One documented NVIDIA technology, with no general Linux tuning form."""
+    CONTENT = {
+        "smooth": ("NVIDIA Smooth Motion", "Interpolación del controlador · RTX 40/50",
+            "Genera un fotograma adicional entre dos renderizados. Funciona sobre Vulkan, incluido DirectX traducido por Proton; no añade DLSS al juego.",
+            "RTX 50: controlador 580.65.06+; RTX 40: 580.95.05+. Requiere VK_LAYER_NV_present en el entorno del juego. Desactiva FG dentro del juego; no se combina con FG/MFG.",
+            "Es una alternativa para juegos sin FG integrado. Las superposiciones pueden interferir. No garantiza una mejora de latencia ni de FPS."),
+        "reflex": ("NVIDIA Reflex", "Puente para Windows / Vulkan · integración requerida",
+            "Permite que un juego Windows/Vulkan con Reflex integrado comunique sus marcadores de latencia al controlador NVIDIA.",
+            "Requiere VK_LAYER_DXVK_NVAPI_reflex. En DirectX, DXVK-NVAPI ya enruta Reflex: no hace falta activar este puente. En Vulkan nativo se utiliza la integración del propio juego.",
+            "No fuerza Reflex ni añade soporte a juegos que no lo integran. No equivale a un modo universal de baja latencia. Una inicialización exitosa sin la capa no demuestra que Reflex funcione."),
+        "sharpen": ("Nitidez NVIDIA", "Filtro del controlador · OpenGL / Vulkan · R595+",
+            "Realza los bordes de la imagen sin cambiar la resolución. Es independiente de DLSS y se puede solicitar por separado.",
+            "Base documentada: controlador R595 o posterior. En Proton requiere una ruta Vulkan (DXVK o VKD3D); también admite Vulkan y OpenGL nativos.",
+            "No activa NIS ni DLDSR. Un exceso de intensidad puede producir halos. Ignorar grano evita realzar ese ruido, pero no elimina el grano del juego."),
+    }
+
+    def __init__(self, feature, changed):
         super().__init__()
-        layout = QGridLayout(self)
-        layout.setContentsMargins(18, 16, 18, 16)
-        layout.setHorizontalSpacing(28)
+        self.feature = feature
         self.controls = {}
-        self.rows = {}
-        choices = [("game", "Controlado por el juego"), ("on", "Activar"), ("off", "Desactivar")]
-        definitions = [
-            ("smooth", "Smooth Motion · Vulkan · RTX 40/50", choices,
-             "Interpolación del controlador. RTX 50: 580.65.06+; RTX 40: 580.95.05+. VK_LAYER_NV_present y juego Vulkan x86_64. No combinar con FG."),
-            ("smooth_queue", "Smooth Motion · compatibilidad de overlays", None,
-             "Presenta desde la cola gráfica; puede reducir el rendimiento. Solo con Smooth Motion activo."),
-            ("sharpen", "Nitidez NVIDIA · OpenGL / Vulkan · R595+", choices,
-             "Filtro del controlador; no activa NIS ni cambia la resolución. Soporte documentado con R595+."),
-            ("sharpen_value", "Intensidad de nitidez · 0–100", (0, 100, 50), "50 = valor predeterminado del controlador."),
-            ("film_grain", "Reducción de grano · 0–100", (0, 100, 17), "17 = valor predeterminado del controlador."),
-            ("reflex", "Puente Reflex · Windows / Vulkan", None,
-             "Requiere capa DXVK-NVAPI Reflex e integración en el juego. En DirectX no se necesita este puente."),
-            ("low_latency", "Reducción de latencia · DXVK", choices,
-             "Heurística de DXVK reciente, no equivale a forzar Reflex. Puede interferir con limitadores."),
-            ("fps", "Límite FPS · DXVK / VKD3D-Proton", (0, 1000, 0),
-             "0 = no añadir override. Limita FPS renderizados, no los fotogramas interpolados."),
-            ("vsync", "Sincronización vertical · DXVK / OpenGL", choices,
-             "No fuerza VSync en DirectX 12 ni en Vulkan nativo. El compositor también decide."),
-            ("anisotropy", "Filtrado anisotrópico · DXVK / OpenGL", [(-1,"Controlado por el juego"),(0,"Desactivar"),(2,"2×"),(4,"4×"),(8,"8×"),(16,"16×")],
-             "Puede afectar pases que requieren filtrado bilineal; no se aplica a DX12/Vulkan directo."),
-            ("lod_bias", "Detalle de texturas (LOD bias) · DXVK", [("game","Controlado por el juego")]+[(x,x) for x in ("-2.0","-1.0","-0.5","0.0","0.5","1.0")],
-             "Valores negativos aumentan detalle y parpadeo; positivos reducen detalle. No es un filtro Freestyle."),
-            ("api_osd", "Indicador gráfico NVIDIA · OpenGL / Vulkan", None,
-             "Muestra API, FPS y presentación. No es el indicador del modelo DLSS."),
-            ("indicator", "Indicadores DLSS · Proton / Vulkan nativo", choices,
-             "Proton: persisten en el registro Wine; ejecuta Desactivar una vez. Vulkan nativo: indicador temporal de SR."),
-            ("gl_vrr", "Permitir G-SYNC / VRR · OpenGL", choices,
-             "Necesita pantalla y sesión VRR configuradas. No activa G-SYNC en el compositor."),
-            ("gl_threaded", "Optimizaciones multihilo · OpenGL", choices,
-             "Puede beneficiar juegos limitados por CPU o empeorar su rendimiento. No afecta a Vulkan."),
-            ("gl_cache", "Caché de shaders del driver · OpenGL", choices,
-             "No borra ni cambia la caché global; no modifica la precaché de Steam."),
-            ("gl_fxaa", "Permitir FXAA del perfil · OpenGL", choices,
-             "Solo permite o impide FXAA previamente habilitado en un perfil del driver; no lo activa por sí solo."),
-        ]
-        for index, (key, title, items, tip) in enumerate(definitions):
-            row = QWidget()
-            form = QVBoxLayout(row)
-            form.setContentsMargins(0, 2, 0, 6)
-            form.setSpacing(4)
-            caption = label(title, "muted", True)
-            if items is None:
-                widget = QCheckBox(title)
-                form.addWidget(widget)
+        outer = QHBoxLayout(self)
+        outer.setContentsMargins(18, 16, 18, 16)
+        outer.setSpacing(22)
+        controls = QWidget()
+        controls.setMinimumWidth(280)
+        controls.setMaximumWidth(410)
+        form = QVBoxLayout(controls)
+        form.setContentsMargins(0, 0, 0, 0)
+        title, scope, effect, requirements, caveat = self.CONTENT[feature]
+        form.addWidget(label(title, "section"))
+        form.addWidget(label(scope, "badge", True))
+        definitions = {
+            "smooth": [("smooth", "Smooth Motion", "state"),
+                       ("smooth_queue", "Compatibilidad con overlays · puede reducir rendimiento", "check")],
+            "reflex": [("reflex", "Habilitar puente Reflex Vulkan", "check")],
+            "sharpen": [("sharpen", "Filtro de nitidez", "state"),
+                        ("sharpen_value", "Intensidad · 0–100", 50),
+                        ("film_grain", "Ignorar grano · 0–100", 17)],
+        }
+        for key, caption, kind in definitions[feature]:
+            if kind == "check":
+                widget = QCheckBox(caption)
                 widget.toggled.connect(changed)
-            elif isinstance(items, tuple):
-                form.addWidget(caption)
-                widget = QSpinBox()
-                widget.setRange(items[0], items[1])
-                widget.setValue(items[2])
-                if key == "fps":widget.setSpecialValueText("Sin override")
-                form.addWidget(widget)
-                widget.valueChanged.connect(changed)
-            else:
-                form.addWidget(caption)
-                widget = combo(items)
-                form.addWidget(widget)
+            elif kind == "state":
+                form.addWidget(label(caption, "eyebrow"))
+                widget = combo([("game", "Sin override"), ("on", "Activar"), ("off", "Desactivar")])
                 widget.currentIndexChanged.connect(changed)
-            widget.setToolTip(tip)
-            widget.setAccessibleName(title)
+            else:
+                form.addWidget(label(caption, "muted", True))
+                widget = QSpinBox()
+                widget.setRange(0, 100)
+                widget.setValue(kind)
+                widget.valueChanged.connect(changed)
+            widget.setAccessibleName(caption)
             self.controls[key] = widget
-            self.rows[key] = row
-            layout.addWidget(row, index // 2, index % 2)
-        layout.setRowStretch(12, 1)
+            form.addWidget(widget)
+        self.availability = label("", "muted", True)
+        form.addWidget(self.availability)
+        form.addStretch()
+        self.description = browser()
+        self.description.setHtml(html(f"<h2>{escape(title)}</h2><p>{escape(effect)}</p>"
+            f"<h3>Requisitos</h3><p>{escape(requirements)}</p>"
+            f"<h3>Cuándo utilizarlo</h3><p>{escape(caveat)}</p>"))
+        outer.addWidget(controls, 4)
+        outer.addWidget(self.description, 6)
 
     def values(self):
         return {key: (w.isChecked() if isinstance(w, QCheckBox) else
                       w.value() if isinstance(w, QSpinBox) else w.currentData())
                 for key, w in self.controls.items()}
 
-    def update_support(self, cfg, show):
-        scopes = {"smooth": cfg.gpu in ("rtx40", "rtx50") and cfg.api != "opengl",
-                  "smooth_queue": cfg.gpu in ("rtx40", "rtx50") and cfg.api != "opengl",
-                  "reflex": cfg.api == "vulkan", "low_latency": cfg.api == "dxvk",
-                  "fps": cfg.api in ("dxvk", "dx12"), "vsync": cfg.api in ("dxvk", "opengl"),
-                  "anisotropy": cfg.api in ("dxvk", "opengl"), "lod_bias": cfg.api == "dxvk",
-                  "indicator": cfg.api != "opengl"}
-        values = self.values()
-        for key, row in self.rows.items():
-            allowed = scopes.get(key, cfg.api == "opengl" if key.startswith("gl_") else True)
-            allowed = allowed and compatible("sr", cfg.gpu)
-            defaults = {"sharpen_value":50, "film_grain":17, "fps":0, "anisotropy":-1}
-            default = defaults.get(key, False if isinstance(self.controls[key], QCheckBox) else "game")
-            selected = values[key] != default
-            row.setVisible(allowed or show or selected)
-            # Keep an incompatible selected control operable so it can be reset.
-            self.controls[key].setEnabled(allowed or selected)
-        smooth = self.controls["smooth"]
-        available = scopes["smooth"] and cfg.smooth_layer is not False
-        available = available and smooth_driver_supported(cfg.gpu, cfg.driver)
-        smooth.model().item(smooth.findData("on")).setEnabled(available)
-        sharpening = self.controls["sharpen"]
-        sharp_ok = compatible("sr", cfg.gpu)
-        if cfg.driver:
-            try:sharp_ok = sharp_ok and int(cfg.driver.split(".")[0]) >= 595
-            except ValueError:sharp_ok = False
-        sharpening.model().item(sharpening.findData("on")).setEnabled(sharp_ok)
-        self.controls["sharpen_value"].setEnabled(cfg.sharpen == "on")
-        self.controls["film_grain"].setEnabled(cfg.sharpen == "on")
+    def supported(self, cfg):
+        if self.feature == "smooth":
+            return (compatible("smooth", cfg.gpu) and cfg.api != "opengl"
+                    and cfg.smooth_layer is not False and smooth_driver_supported(cfg.gpu, cfg.driver))
+        if self.feature == "reflex":
+            return compatible("sr", cfg.gpu) and cfg.api == "vulkan" and cfg.reflex_layer is not False
+        try:
+            return compatible("sr", cfg.gpu) and (not cfg.driver or int(cfg.driver.split(".")[0]) >= 595)
+        except ValueError:
+            return False
+
+    def active(self):
+        value = self.values()[self.feature]
+        return value is True if self.feature == "reflex" else value != "game"
+
+    def update_support(self, cfg):
+        ok = self.supported(cfg)
+        control = self.controls[self.feature]
+        if isinstance(control, QComboBox):
+            control.model().item(control.findData("on")).setEnabled(ok)
+        else:
+            control.setEnabled(ok or self.active())
+        if self.feature == "smooth":
+            queue = self.controls["smooth_queue"]
+            queue.setEnabled(cfg.smooth == "on" or queue.isChecked())
+        if self.feature == "sharpen":
+            for key in ("sharpen_value", "film_grain"):
+                self.controls[key].setEnabled(cfg.sharpen == "on")
+        self.availability.setText("Requisitos locales compatibles; aplicación en juego sin verificar." if ok
+                                 else "No disponible con esta GPU, API, controlador o capa. Puedes quitar una selección previa.")
 
 
 class MainWindow(QMainWindow):
@@ -430,11 +424,12 @@ class MainWindow(QMainWindow):
             panel = TechPanel(tech, self.refresh)
             self.panels[tech] = panel
             self.tabs.addTab(panel, title)
-        self.linux_panel = LinuxPanel(self.refresh)
-        linux_scroll = QScrollArea()
-        linux_scroll.setWidgetResizable(True)
-        linux_scroll.setWidget(self.linux_panel)
-        self.tabs.addTab(linux_scroll, "Ajustes NVIDIA / Linux")
+        self.feature_panels = {}
+        self.feature_tabs = {}
+        for feature, title in (("smooth", "Smooth Motion"), ("reflex", "Reflex"), ("sharpen", "Nitidez NVIDIA")):
+            panel = DriverTechnologyPanel(feature, self.refresh)
+            self.feature_panels[feature] = panel
+            self.feature_tabs[feature] = self.tabs.addTab(panel, title)
         self.tabs.setMaximumHeight(440)
         body.addWidget(self.tabs)
         advice_row = QHBoxLayout()
@@ -442,7 +437,7 @@ class MainWindow(QMainWindow):
         advice_row.addWidget(self.advice, 1)
         body.addLayout(advice_row)
 
-        self.options_toggle = QPushButton("▸ Más opciones · parámetros actuales y actualizador NGX")
+        self.options_toggle = QPushButton("▸ Más opciones · parámetros actuales y diagnóstico")
         self.options_toggle.setCheckable(True)
         self.options_toggle.toggled.connect(self.toggle_options)
         body.addWidget(self.options_toggle)
@@ -457,11 +452,16 @@ class MainWindow(QMainWindow):
         self.existing.textChanged.connect(self.refresh)
         advanced_layout.addWidget(self.existing)
         advanced_layout.addWidget(label("Pega tus parámetros para conservarlos en el comando final.", "muted", True))
-        self.updater = QCheckBox("Solicitar actualizador NGX de Proton")
-        self.updater.setChecked(True)
-        self.updater.toggled.connect(self.refresh)
-        self.updater.setToolTip("Solicita componentes DLSS compatibles. Si el juego no arranca, prueba desactivándolo.")
-        advanced_layout.addWidget(self.updater)
+        self.update_only = QCheckBox("Actualizar componentes DLSS sin cambiar preset ni calidad")
+        self.update_only.setToolTip("Solo añade PROTON_ENABLE_NGX_UPDATER=1. Al elegir un preset o modo DLSS, la actualización NGX ya se incluye automáticamente.")
+        self.update_only.toggled.connect(self.refresh)
+        advanced_layout.addWidget(self.update_only)
+        advanced_layout.addWidget(label("Los presets incluyen automáticamente el actualizador NGX. No se fija una versión de DLL ni se cambia la calidad del juego.", "muted", True))
+        advanced_layout.addWidget(label("INDICADORES DLSS SR / FG · DIAGNÓSTICO OPCIONAL", "eyebrow"))
+        self.indicator = combo([("game", "Sin cambios"), ("on", "Mostrar indicadores"), ("off", "Desactivar indicadores")])
+        self.indicator.setToolTip("Proton: persisten en el registro Wine; ejecuta Desactivar una vez para quitarlos. Vulkan nativo: solo indicador SR temporal.")
+        self.indicator.currentIndexChanged.connect(self.refresh)
+        advanced_layout.addWidget(self.indicator)
         self.advanced_card.setVisible(False)
         body.addWidget(self.advanced_card)
         body.addStretch()
@@ -531,7 +531,8 @@ class MainWindow(QMainWindow):
                 if panel.mode is not None:pick(panel.mode, "game")
             pick(self.panels["fg"].fg_mode, "game")
             self._building = False
-            self.tabs.setCurrentIndex(3)
+            self.update_only.setChecked(False)
+            self.tabs.setCurrentIndex(self.feature_tabs["sharpen"])
             self.statusBar().showMessage("Juego nativo: los overrides DLSS de Proton no se aplican. Se deja DLSS controlado por el juego.", 10000)
         self.refresh()
 
@@ -539,7 +540,8 @@ class MainWindow(QMainWindow):
         self._building = True
         try:
             self.existing.clear()
-            self.updater.setChecked(False)
+            self.update_only.setChecked(False)
+            pick(self.indicator, "game")
             self.advanced.setChecked(False)
             self.show_unsupported.setChecked(False)
             self.options_toggle.setChecked(False)
@@ -554,7 +556,7 @@ class MainWindow(QMainWindow):
             pick(fg.multiplier, 2)
             fg.target.setValue(144)
             defaults = Config()
-            for key, widget in self.linux_panel.controls.items():
+            for key, widget in self.feature_controls().items():
                 value = getattr(defaults, key)
                 if isinstance(widget, QCheckBox):
                     widget.setChecked(value)
@@ -572,7 +574,10 @@ class MainWindow(QMainWindow):
     def toggle_options(self, checked):
         self.advanced_card.setVisible(checked)
         self.options_toggle.setText(("▾" if checked else "▸") +
-                                   " Más opciones · parámetros actuales y actualizador NGX")
+                                   " Más opciones · parámetros actuales y diagnóstico")
+
+    def feature_controls(self):
+        return {key: widget for panel in self.feature_panels.values() for key, widget in panel.controls.items()}
 
     def config(self):
         sr = self.panels["sr"]
@@ -584,17 +589,22 @@ class MainWindow(QMainWindow):
             rr=Selection(rr.models.currentData() or "game", rr.mode.currentData(), rr.custom_scale.value()),
             fg=Selection(fg.models.currentData() or "game"),
             fg_mode=fg.fg_mode.currentData(), multiplier=fg.multiplier.currentData(),
-            target_fps=fg.target.value(), updater=self.updater.isChecked(),
+            target_fps=fg.target.value(), update_only=self.update_only.isChecked(),
+            indicator=self.indicator.currentData(),
             existing=self.existing.toPlainText(), api=self.api.currentData(),
             driver=self.hw.driver if self.hw.driver != "Sin detectar" else "",
             smooth_layer=self.hw.smooth_layer, reflex_layer=self.hw.reflex_layer,
-            **self.linux_panel.values())
+            **{key: value for panel in self.feature_panels.values() for key, value in panel.values().items()})
 
     def refresh(self, *_):
         if self._building:
             return
         cfg = self.config()
-        self.linux_panel.update_support(cfg, self.show_unsupported.isChecked())
+        for feature, panel in self.feature_panels.items():
+            panel.update_support(cfg)
+            self.tabs.setTabVisible(self.feature_tabs[feature], panel.supported(cfg)
+                                   or self.show_unsupported.isChecked() or panel.active())
+        self.update_only.setEnabled(compatible("sr", cfg.gpu) and cfg.api not in ("opengl", "native_vulkan"))
         self.hardware_label.setText(self.hw.name)
         self.hardware_support.setText(
             "SR / DLAA · RR · FG / MFG" if cfg.gpu == "rtx50" else
@@ -666,13 +676,7 @@ class MainWindow(QMainWindow):
         self.copy_button.setText("✓ Copiado")
         QTimer.singleShot(1800, lambda: self.copy_button.setText("Copiar Steam"))
 
-def main():
-    parser = argparse.ArgumentParser(description="NVIDIA Commands for Linux · Linux / Proton")
-    parser.add_argument("--screenshot", type=Path, help="Guardar captura de la interfaz y salir (comprobación visual)")
-    parser.add_argument("--version", action="version", version=f"NVIDIA Commands for Linux {__version__}")
-    parser.add_argument("--self-test", action="store_true", help="Verificar recursos, interfaz y portapapeles y salir")
-    args = parser.parse_args()
-    app = QApplication(sys.argv[:1])
+def configure_application(app):
     app.setApplicationName("NVIDIA Commands for Linux")
     app.setApplicationVersion(__version__)
     app.setWindowIcon(QIcon(str(RESOURCES / "assets/nvidia-commands-for-linux.png")))
@@ -688,13 +692,23 @@ def main():
     palette.setColor(QPalette.ColorRole.ButtonText, QColor("#e7edf3"))
     palette.setColor(QPalette.ColorRole.Highlight, QColor("#365348"))
     app.setPalette(palette)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="NVIDIA Commands for Linux · Linux / Proton")
+    parser.add_argument("--screenshot", type=Path, help="Guardar captura de la interfaz y salir (comprobación visual)")
+    parser.add_argument("--version", action="version", version=f"NVIDIA Commands for Linux {__version__}")
+    parser.add_argument("--self-test", action="store_true", help="Verificar recursos, interfaz y portapapeles y salir")
+    args = parser.parse_args()
+    app = QApplication(sys.argv[:1])
+    configure_application(app)
     window = MainWindow(Hardware("NVIDIA GeForce RTX 2060", "rtx20")) if args.self_test else MainWindow()
     window.show()
     if args.self_test:
         def verify():
             try:
                 assert not window.windowIcon().isNull(), "Icono ausente"
-                assert window.panels["sr"].generation.text() == "DLSS 4.0", "Catálogo incorrecto"
+                assert window.command.toPlainText() == "", "Selección inicial no neutra"
                 pick(window.panels["sr"].models, "M")
                 pick(window.panels["sr"].mode, "performance")
                 window.copy_command()
@@ -712,6 +726,7 @@ def main():
                 assert not window.command.toPlainText() and not window.game_arguments.toPlainText(), "Reset no vacía las salidas"
                 assert not window.result.environment and not window.copy_button.isEnabled(), "Reset conserva ajustes"
                 pick(window.panels["sr"].models, "M")
+                assert "PROTON_ENABLE_NGX_UPDATER=1" in window.command.toPlainText(), "NGX ausente tras Reset"
                 assert "render_preset_m" in window.command.toPlainText(), "No se puede empezar tras Reset"
                 print(f"NVIDIA Commands for Linux {__version__}: recursos, GPU simulada, presets, Steam/Argumento Epic, Reset, explicaciones, Smooth Motion, conflictos y portapapeles OK", flush=True)
                 app.exit(0)

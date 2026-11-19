@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nvidia-commands-for-linux"
-version = "2.0.0"
+version = "2.1.0"
 description = "NVIDIA graphics launch commands for Steam and Epic on Linux"
 requires-python = ">=3.10"
 

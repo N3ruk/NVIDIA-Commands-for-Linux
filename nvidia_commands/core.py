@@ -35,13 +35,13 @@ class Selection:
 @dataclass
 class Config:
     gpu: str = 'rtx20'
-    sr: Selection = field(default_factory=lambda: Selection('K'))
+    sr: Selection = field(default_factory=Selection)
     rr: Selection = field(default_factory=Selection)
     fg: Selection = field(default_factory=Selection)
     fg_mode: str = 'game'
     multiplier: int = 2
     target_fps: int = 144
-    updater: bool = True
+    update_only: bool = False
     existing: str = ''
     launcher: str = 'steam'
     epic_path: str = ''
@@ -303,10 +303,27 @@ def generate(cfg):
                     s['NGX_DLSSG_DYNAMIC_TARGET_FRAME_RATE'] = str(cfg.target_fps)
                 else:
                     s['NGX_DLSSG_MULTI_FRAME_COUNT'] = str(cfg.multiplier - 1)
+        # Updating is a dependency of a model request, not a toggle that Reset
+        # can leave disabled. Never enable other DLSS technologies here.
+        needs_update = (any(getattr(cfg, tech).preset != 'game' for tech in ('sr', 'rr', 'fg'))
+                        or cfg.sr.mode != 'game' or cfg.rr.mode != 'game'
+                        or cfg.fg_mode in ('on', 'dynamic'))
+        # Imported, recognized model/override requests need the same updater.
+        # Unknown keys are retained, not interpreted as additional technologies.
+        effective_drs = old_drs | s
+        for tech in ('SR', 'RR', 'FG'):
+            stem = 'NGX_DLSS_' + tech
+            model = effective_drs.get(stem + '_OVERRIDE_RENDER_PRESET_SELECTION', '').lower()
+            override = effective_drs.get(stem + '_OVERRIDE', '').lower()
+            fg_off = tech == 'FG' and effective_drs.get('NGX_DLSSG_MODE', '').lower() in ('off', '1', '0x1')
+            if not fg_off and (override in ('on', '1', '0x1') or model.startswith('render_preset_')):
+                needs_update = True
+        if cfg.update_only and (cfg.gpu not in FAMILIES or cfg.api in ('opengl', 'native_vulkan')):
+            raise ValueError('El actualizador NGX de Proton requiere una GPU RTX y un juego Windows / Proton.')
+        if needs_update or cfg.update_only:
+            env['PROTON_ENABLE_NGX_UPDATER'] = '1'
         if s:
             r.warnings.append('Requiere DXVK-NVAPI/Proton reciente y funciones integradas en el juego. El comando solicita ajustes; no verifica su aplicación.')
-            if cfg.updater:
-                env['PROTON_ENABLE_NGX_UPDATER'] = '1'
         overwritten = set(old_drs) & set(s)
         if overwritten:
             r.warnings.append('Se sustituye el valor anterior de los ajustes seleccionados; se conservan los demás.')
@@ -336,6 +353,23 @@ def generate(cfg):
     return r
 
 
+def fg_may_be_enabled(drs):
+    """Named and numeric DRS enums from NVIDIA's NvApiDriverSettings.h."""
+    mode = drs.get('NGX_DLSSG_MODE', '').strip().lower()
+    override = drs.get('NGX_DLSS_FG_OVERRIDE', '').strip().lower()
+    def matches(value, names, numbers):
+        if value in names:
+            return True
+        try:
+            return int(value, 16 if value.startswith('0x') else 10) in numbers
+        except ValueError:
+            return False
+    if matches(mode, ('off',), (1,)):
+        return False
+    return (matches(mode, ('on', 'dynamic', 'auto'), (2, 3, 4))
+            or matches(override, ('on',), (1,)))
+
+
 def apply_features(c, r, env, tokens, drs):
     dx = {}
     def state(value):
@@ -354,7 +388,7 @@ def apply_features(c, r, env, tokens, drs):
                 raise ValueError('No se detecta VK_LAYER_NV_present. Revisa la instalación del controlador.')
             if c.smooth_layer is None:
                 r.warnings.append('Smooth Motion: comprueba que el controlador incluye VK_LAYER_NV_present. La base documentada R580 soporta juegos Vulkan x86_64.')
-            if c.fg_mode in ('on', 'dynamic') or drs.get('NGX_DLSSG_MODE', '').lower() in ('on', 'dynamic', 'auto', '2', '3', '4', '0x2', '0x3', '0x4') or (drs.get('NGX_DLSS_FG_OVERRIDE', '').lower() == 'on' and c.fg_mode != 'off'):
+            if fg_may_be_enabled(drs):
                 raise ValueError('No combines Smooth Motion con DLSS Frame Generation. Desactiva FG en el juego y en los overrides.')
             r.warnings.append('Smooth Motion: desactiva FG dentro del juego; el generador no puede leer ese ajuste. Algunas superposiciones pueden interferir.')
         env['NVPRESENT_ENABLE_SMOOTH_MOTION'] = state(c.smooth)
@@ -362,13 +396,20 @@ def apply_features(c, r, env, tokens, drs):
         if env.get('NVPRESENT_ENABLE_SMOOTH_MOTION') != '1':
             raise ValueError('La compatibilidad de superposiciones requiere activar Smooth Motion.')
         env['NVPRESENT_QUEUE_FAMILY'] = '1'
-    if env.get('NVPRESENT_ENABLE_SMOOTH_MOTION') == '1' and (c.fg_mode in ('on', 'dynamic') or drs.get('NGX_DLSSG_MODE', '').lower() in ('on', 'dynamic', 'auto', '2', '3', '4', '0x2', '0x3', '0x4') or (drs.get('NGX_DLSS_FG_OVERRIDE', '').lower() == 'on' and c.fg_mode != 'off')):
+    if env.get('NVPRESENT_ENABLE_SMOOTH_MOTION') == '1' and (fg_may_be_enabled(drs)):
         raise ValueError('Los parámetros actuales combinan Smooth Motion y DLSS FG. Resuelve el conflicto antes de copiar.')
+    if env.get('NVPRESENT_ENABLE_SMOOTH_MOTION') == '1' and any(
+            Path(token).name == 'gamescope' for token in tokens[:tokens.index('%command%')]):
+        raise ValueError('No se aplica Smooth Motion al wrapper Gamescope y al juego a la vez. Retira el wrapper o usa una sola ruta de interpolación.')
     if c.reflex:
         if c.gpu not in FAMILIES or c.api != 'vulkan':
             raise ValueError('El puente Reflex Vulkan se usa en juegos Windows/Vulkan con GPU RTX; DirectX ya lo enruta por DXVK-NVAPI.')
         if c.reflex_layer is False:
-            raise ValueError('No se detecta VK_LAYER_DXVK_NVAPI_reflex; instala la capa compatible o usa winevulkan moderno compatible.')
+            raise ValueError('No se detecta VK_LAYER_DXVK_NVAPI_reflex. Este puente requiere la capa; la ruta directa de winevulkan moderno no necesita este override.')
+        if env.get('DISABLE_DXVK_NVAPI_VKREFLEX'):
+            raise ValueError('Los parámetros importados desactivan el puente Reflex con DISABLE_DXVK_NVAPI_VKREFLEX. Retira ese parámetro para habilitarlo.')
+        if c.reflex_layer is None:
+            r.warnings.append('Reflex Vulkan: comprueba que la capa VK_LAYER_DXVK_NVAPI_reflex está instalada y disponible dentro del entorno del juego.')
         env['DXVK_NVAPI_VKREFLEX'] = '1'
         r.warnings.append('Activa Reflex en el juego. Este puente requiere la capa DXVK-NVAPI Reflex; no fuerza Reflex en títulos sin integración.')
     if c.low_latency != 'game':

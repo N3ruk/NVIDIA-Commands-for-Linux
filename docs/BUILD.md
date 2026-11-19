@@ -2,10 +2,10 @@
 
 [Español](es/BUILD.md) · [Home](../README.md)
 
-## Release 2.0.0 packages
+## Release 2.1.0 packages
 
-- `NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage`: portable, Python and Qt included.
-- `nvidia-commands-for-linux_2.0.0_amd64.deb`: self-contained installation under `/opt/nvidia-commands-for-linux`.
+- `NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage`: portable, Python and Qt included.
+- `nvidia-commands-for-linux_2.1.0_amd64.deb`: self-contained installation under `/opt/nvidia-commands-for-linux`.
 - `SHA256SUMS`: package hashes.
 - `build-info.json`: builder versions and system requirements.
 
@@ -39,15 +39,15 @@ The AppImage runtime is SHA256-pinned. Changes to the `continuous` download stop
 ## Checks
 
 ```sh
-QT_QPA_PLATFORM=offscreen ./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --self-test
-./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --version
+QT_QPA_PLATFORM=offscreen ./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --self-test
+./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --version
 (cd dist && sha256sum -c SHA256SUMS)
 ```
 
 The self-test uses a simulated GPU to check presets and clipboard only; it does not certify real hardware or an in-game model. For real detection and a screenshot:
 
 ```sh
-./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --screenshot artifacts/preview.png
+./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --screenshot artifacts/preview.png
 ```
 
 Without FUSE, add `--appimage-extract-and-run`. Offline DEB testing can use another clean Ubuntu Base with `QT_QPA_PLATFORM=offscreen nvidia-commands-for-linux --self-test`, without installing Python/Qt. X11 and Wayland plugins are included; the GTK appearance adapter is omitted because the application uses its own Fusion style.

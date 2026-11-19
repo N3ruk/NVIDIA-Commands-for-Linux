@@ -2,10 +2,10 @@
 
 [English](../BUILD.md)
 
-## Paquetes de la versión 2.0.0
+## Paquetes de la versión 2.1.0
 
-- `NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage`: portable, Python y Qt incluidos.
-- `nvidia-commands-for-linux_2.0.0_amd64.deb`: instalación autónoma en `/opt/nvidia-commands-for-linux`.
+- `NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage`: portable, Python y Qt incluidos.
+- `nvidia-commands-for-linux_2.1.0_amd64.deb`: instalación autónoma en `/opt/nvidia-commands-for-linux`.
 - `SHA256SUMS`: huellas de ambos paquetes.
 - `build-info.json`: versiones del constructor y requisitos del sistema.
 
@@ -53,8 +53,8 @@ que dos compilaciones diferentes sean idénticas byte a byte.
 ## Comprobaciones
 
 ```sh
-QT_QPA_PLATFORM=offscreen ./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --self-test
-./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --version
+QT_QPA_PLATFORM=offscreen ./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --self-test
+./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --version
 (cd dist && sha256sum -c SHA256SUMS)
 ```
 
@@ -63,7 +63,7 @@ portapapeles: no certifica la GPU real ni un modelo cargado dentro de un juego.
 Para comprobar detección real e interfaz:
 
 ```sh
-./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --screenshot artifacts/preview.png
+./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --screenshot artifacts/preview.png
 ```
 
 Si FUSE no está disponible, el runtime admite `--appimage-extract-and-run`.

@@ -133,7 +133,7 @@ class NativeAndScalingTests(unittest.TestCase):
         self.assertEqual(r.environment['__NGX_SHOW_INDICATOR'],'1024')
         self.assertNotIn('PROTON_ENABLE_NGX_UPDATER',r.command)
         self.assertNotIn('DXVK_NVAPI_',r.command)
-        self.assertTrue(generate(Config(api='native_vulkan')).errors)
+        self.assertTrue(generate(Config(api='native_vulkan', sr=Selection('K'))).errors)
     def test_workstation_name_not_misidentified_as_blackwell(self):
         from nvidia_commands.core import family_for
         self.assertEqual(family_for('NVIDIA RTX 5000 Ada Generation'),'unknown')

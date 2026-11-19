@@ -10,7 +10,7 @@ class ExplanationTests(unittest.TestCase):
         return dict(explain_result(result))
 
     def test_combined_dxvk_and_drs_are_expanded(self):
-        entries = self.explanations(fps=90, vsync='off', anisotropy=16, lod_bias='-0.5', low_latency='on')
+        entries = self.explanations(sr=Selection('K'), fps=90, vsync='off', anisotropy=16, lod_bias='-0.5', low_latency='on')
         for key in ('dxgi.maxFrameRate=90', 'd3d9.maxFrameRate=90', 'dxgi.syncInterval=0',
                     'd3d11.samplerAnisotropy=16', 'd3d11.samplerLodBias=-0.5', 'dxvk.latencySleep=True'):
             self.assertIn(key, entries)

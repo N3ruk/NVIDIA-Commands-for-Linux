@@ -1,0 +1,42 @@
+{
+  "version": "2.1.0",
+  "unit_ui_tests": 108,
+  "base": "Ubuntu Base 22.04.5, SHA256-verified",
+  "base_system_python_qt": false,
+  "network": "unshared",
+  "host_installation": false,
+  "appimage_extract_and_run": "passed",
+  "deb_install_self_test_purge": "passed",
+  "elf_count": 241,
+  "max_required_glibc": "2.35",
+  "physical_rtx5070": false,
+  "in_game_verification": false,
+  "epic_authenticated_game": false,
+  "date": "2026-11-19",
+  "unit_ui_test_environment": "Ubuntu 22.04 / Python 3.10 / PySide6 6.8.3",
+  "appimage_fuse_self_tests": {
+    "offscreen": "passed",
+    "xcb": "passed",
+    "wayland": "passed"
+  },
+  "upgrade_from_public_2.0.0": "passed",
+  "same_version_reinstall": "passed",
+  "read_only_opt_self_tests": 2,
+  "profile_preserved_through_upgrade_reinstall_purge": true,
+  "frozen_code": {
+    "frozen_sources_match": [
+      "nvidia_commands.core",
+      "nvidia_commands.ui",
+      "nvidia_commands.explanations"
+    ],
+    "installed_core_scope_tests": 13,
+    "passed": true
+  },
+  "deb_appdir_payloads_identical": true,
+  "artifacts": {
+    "NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage": "eb8d65a1909cb946ba7a2daf290f675fda7faa6aaed123695000e5aada626c64",
+    "nvidia-commands-for-linux_2.1.0_amd64.deb": "9df977809dc81b2a9edfd1f61151bf0a9aa423e17bf3d31c8e593b043ac3d85b",
+    "SHA256SUMS": "6e9beea515f2aab197ba1be1955ce3a55189f60bfb7ef150f6242cf15b138192",
+    "build-info.json": "cb8da18c983b5345c52fd0e59aea0fe48ebc2db8e4512cdbf3d6129f5a72e7fb"
+  }
+}

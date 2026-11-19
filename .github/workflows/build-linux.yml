@@ -22,7 +22,7 @@ jobs:
         run: |
           /opt/build-venv/bin/python -m unittest discover -s tests -v
           /opt/build-venv/bin/python tools/build_linux.py
-          ./dist/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --appimage-extract-and-run --self-test
+          ./dist/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --appimage-extract-and-run --self-test
           cd dist && sha256sum -c SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
@@ -51,8 +51,8 @@ jobs:
           cd dist
           sha256sum -c SHA256SUMS
           chmod +x *.AppImage
-          ./NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --appimage-extract-and-run --self-test
-          dpkg -i nvidia-commands-for-linux_2.0.0_amd64.deb
+          ./NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --appimage-extract-and-run --self-test
+          dpkg -i nvidia-commands-for-linux_2.1.0_amd64.deb
           nvidia-commands-for-linux --self-test
           nvidia-commands-for-linux --version
           dpkg --purge nvidia-commands-for-linux

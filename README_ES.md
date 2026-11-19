@@ -1,6 +1,6 @@
 <img src="nvidia_commands/assets/nvidia-commands-for-linux.png" width="100" align="right" alt="NVIDIA Commands for Linux">
 
-# NVIDIA Commands for Linux · 2.0.0
+# NVIDIA Commands for Linux · 2.1.0
 
 [English](README.md) | **Español**
 
@@ -10,20 +10,22 @@ Elige modelos DLSS y ajustes con una ruta Linux documentada. La interfaz conserv
 
 ![Interfaz con GPU detectada realmente](docs/screenshot.png)
 
+> **Cambios en 2.1.0:** dependencia NGX automática para presets, inicio neutro, fichas independientes y retirada de los ajustes generales NVIDIA/Linux. [Changelog](CHANGELOG.md#español) · [Auditoría técnica](docs/es/AUDITORIA-2026-11-19.md).
+
 ## Descargar
 
-[Release 2.0.0](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/tag/v2.0.0):
+[Release 2.1.0](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/tag/v2.1.0):
 
-- [AppImage x86_64](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.0.0/NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage).
-- [DEB amd64 autocontenido](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.0.0/nvidia-commands-for-linux_2.0.0_amd64.deb).
+- [AppImage x86_64](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.1.0/NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage).
+- [DEB amd64 autocontenido](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/releases/download/v2.1.0/nvidia-commands-for-linux_2.1.0_amd64.deb).
 
 Incluyen Python, Qt, bibliotecas, fuentes y licencias. Requieren GNU/Linux x86_64 con **glibc 2.35+** y escritorio X11/Wayland: Ubuntu 22.04+, Debian 12+, Mint 21+. No ARM, 32 bits, musl ni Linux universal. No incluyen controladores, Steam, Epic o Proton. El configurador no requiere instalar Gamescope ni MangoHud.
 
 ```sh
-chmod +x NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage
-./NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage
+chmod +x NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage
+./NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage
 # Sin FUSE:
-./NVIDIA-Commands-for-Linux-2.0.0-x86_64.AppImage --appimage-extract-and-run
+./NVIDIA-Commands-for-Linux-2.1.0-x86_64.AppImage --appimage-extract-and-run
 ```
 
 Abre el DEB con el instalador de paquetes. Se instala en `/opt/nvidia-commands-for-linux`; declara la sustitución del paquete `dlss-studio` sin borrar perfiles antiguos. El acceso se llama **NVIDIA Commands for Linux**. Comprueba los archivos con `SHA256SUMS` de la release.
@@ -35,23 +37,24 @@ Abre el DEB con el instalador de paquetes. Se instala en `/opt/nvidia-commands-f
 - **FG/MFG:** RTX 40: FG 2×; RTX 50: hasta 6× y MFG dinámico. El modo dinámico genera el valor DRS `dynamic` correcto.
 - **Smooth Motion:** interpolación del driver; bases documentadas RTX 50 **580.65.06+**, RTX 40 **580.95.05+**, capa `VK_LAYER_NV_present` y Vulkan x86_64. No combinar con FG integrado.
 - **Nitidez NVIDIA:** filtro OpenGL/Vulkan, intensidad y reducción de grano; base documentada R595+. No activa escalado NIS.
-- **Latencia/FPS:** puente Reflex Vulkan opcional, reducción de latencia DXVK, límites DXVK/VKD3D y VSync según API.
-- **Texturas/pantalla:** anisotropía DXVK/OpenGL, LOD bias DXVK; VRR, multihilo, caché de shaders y permiso FXAA para OpenGL.
-- **Indicadores:** indicador gráfico NVIDIA e indicadores DLSS con opción explícita para quitarlos.
+- **Reflex:** puente Windows/Vulkan opcional con su capa e integración del juego. DirectX ya lo enruta mediante DXVK-NVAPI; no se fuerza Reflex universalmente.
+- **Indicadores DLSS:** diagnóstico opcional en Más opciones; persistencia Wine y desactivación explícita. No se añaden al elegir un preset.
+- **Actualización NGX:** automática con presets/modos DLSS. Actualización sin cambiar modelo/calidad disponible por separado. No fija una versión concreta de DLL.
+- **Interfaz simplificada:** eliminado «Ajustes NVIDIA / Linux» y sus controles generales. Smooth Motion, Reflex y nitidez son tecnologías independientes, no un panel de ajustes renombrado.
 - **Alcance gráfico:** sin controles de Gamescope/NIS/FSR, MangoHud/DXVK HUD, PRIME ni señalización HDR genérica. Las utilidades externas de lanzamiento corresponden a SteamCommandGen.
-- **Reset:** borra parámetros importados, overrides y ambas salidas; conserva la GPU detectada y no modifica el sistema. Los indicadores persistentes ya aplicados en Wine necesitan ejecutar una vez su opción Desactivar.
+- **Inicio y Reset:** sin tecnologías preseleccionadas; borra parámetros importados, overrides y ambas salidas; conserva la GPU detectada y no modifica el sistema. Los indicadores persistentes ya aplicados en Wine necesitan ejecutar una vez su opción Desactivar.
 - **Explicaciones:** cada variable y su valor seleccionado se describen por separado, incluidos los ajustes internos DRS/DXVK. Los valores importados desconocidos se identifican sin inventar su efecto.
 
 Los juegos **nativos de Linux no admiten estos overrides de presets DLSS**. Al elegir API nativa se dejan las selecciones exclusivas de Proton controladas por el juego. Vulkan nativo admite el indicador SR temporal y las opciones compatibles del controlador.
 
-![Ajustes Linux filtrados según la GPU detectada](docs/linux-options.png)
+![Smooth Motion independiente, GPU RTX 5070 simulada para verificar la interfaz](docs/linux-options.png)
 
 ![Explicaciones de las variables y sus valores seleccionados](docs/variable-explanations.png)
 
 ## Steam
 
 1. Selecciona la API real del juego. Las dos salidas permanecen visibles a la vez.
-2. Elige ajustes. En **Más opciones** puedes conservar parámetros actuales sencillos.
+2. Elige solo las tecnologías deseadas. Un preset SR/K incluye NGX, pero no RR, FG, DLAA ni cambios de calidad. En **Más opciones** puedes conservar parámetros actuales sencillos.
 3. Copia en Steam → Propiedades del juego → General → Parámetros de lanzamiento.
 4. Activa las funciones integradas dentro del juego. Para Smooth Motion, desactiva FG en el juego.
 

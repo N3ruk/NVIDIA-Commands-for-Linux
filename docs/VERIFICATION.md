@@ -1,41 +1,36 @@
-# Release 2.0.0 verification
+# Release 2.1.0 verification
 
-[Home](../README.md) · [Español](../README_ES.md) · 2026-11-03
+[Home](../README.md) · [Español](../README_ES.md) · 2026-11-19
+
+Results apply to the 2.1.0 sources and final DEB/AppImage, not merely to an earlier installed revision. [Machine-readable results and package hashes](release-2.1.0-verification.json) · [Changes from 2.0.0](../CHANGELOG.md).
 
 ## Verification scope
 
-The checks below cover the current parallel Steam/Epic output interface, Reset, variable/value explanations and packaged resources. The release contains an offline command generator, not a game runtime.
-
 | Check | Observed result |
 | --- | --- |
-| Host Python 3.14 / PyQt6 suite | **96 tests passed** |
-| Ubuntu 22.04 Python 3.10 / PySide6 builder suite | **96 tests passed** |
-| Packaged self-test | Presets, independent clipboards, Reset, explanations, resources and conflicts passed |
-| AppImage normal execution / X11 / Wayland | Version and offscreen / `xcb` / `wayland` self-tests all returned 0 |
-| Independent Ubuntu Base 22.04.5 without system Python/Qt | AppImage extract-and-run passed; no host directories, network unshared |
-| DEB install / self-test / purge in isolated base | Passed; application directory, executable and desktop entry absent after purge |
+| Ubuntu 22.04 / Python 3.10 / PySide6 6.8.3 logic/UI suite | **108 tests passed** |
+| Frozen-module identity | Core, UI and explanations match the compiled revised sources; **13 command-scope tests** also pass against the frozen core |
+| Payload consistency | DEB payload files match the AppDir used to build the AppImage |
+| AppImage with FUSE | Offscreen, X11 (`xcb`) and Wayland self-tests passed |
+| Independent Ubuntu Base 22.04.5 without system Python/Qt | AppImage extract-and-run and DEB install/self-test/purge passed; network isolated |
+| Upgrade from the published 2.0.0 DEB | Passed inside the clean base |
+| Same-version 2.1.0 reinstall | Passed; package integrity checked |
+| Installed payload mounted read-only | Self-tests passed in two separate processes |
+| Existing profile preservation | Fixture file unchanged through upgrade, reinstall and purge |
+| Removal | No application payload, executable or desktop entry remains in the clean base |
 | ABI audit | **241 ELF files**, maximum required GLIBC symbol version **2.35** |
-| Package hashes | Both SHA256SUMS entries passed in the clean verification base |
-| Installed host package | **2.0.0 installed**, packaged self-test and `dpkg -V` integrity check passed |
-| GitHub CI | [Run 41621240735](https://github.com/N3ruk/NVIDIA-Commands-for-Linux/actions/runs/41621240735): build and independent clean-base install/purge passed for code commit `2c2ac9e045c08b04c53731db1e851b07307bb7a1` |
+| Download integrity | Both package hashes checked in the clean base; hashes recorded in the JSON report |
 
-Real hardware detection was checked on **NVIDIA GeForce RTX 2060 / driver 595.99.02**. RTX 5070/RTX 40 and other GPU families in tests use simulated fixtures, not physical hardware. Real-GPU screenshots show parallel command outputs and the dark/green interface.
+The [GitHub build workflow](../.github/workflows/build-linux.yml) repeats the suite, builds both formats and checks installation/removal in a separate container without system Python/Qt. Publication is gated on a successful run for the exact main commit. The release notes link that run.
 
-## What is checked
+Build warnings concern the optional GTK appearance adapter, which is excluded from the final payload; the application uses Fusion. No GTK dependency is required by the distributed application.
 
-- DLSS SR/RR/FG/MFG presets, independent model/mode/custom 33–100% scale, dynamic MFG and generated-frame counts.
-- GPU/driver/layer/API gates, Smooth Motion R580 per-generation baselines, R595 sharpening and FG conflict handling.
-- Safe merging of DXVK/DRS settings and preserved launch parameters; conflicting/complex inputs rejected without execution.
-- Valid POSIX environment-assignment grammar, exactly one Steam placeholder and extraction of game-only Epic arguments.
-- Independent clipboard outputs, empty Reset even after conflicts, preserved GPU detection and value-by-value explanations, including unknown imported values.
-- Packaged icon/catalog/licenses and Python/Qt independence from the clean verification base.
+## Boundaries
 
-## Not established
+- Real GPU detection was checked on RTX 2060; RTX 5070/other families in UI fixtures are simulated. No physical RTX 40/50 verification is claimed.
+- No game launches or FPS/visual/model-effect measurements were performed for these package checks. The audit records a separately observed SR/K command match, not general game certification.
+- No authenticated Epic launch was tested. NVIDIA environment variables are not Epic game arguments; experimental launcher-wide inheritance remains unverified.
+- Drivers, game integration, Proton/runtime components and compositor/display setup remain external requirements. glibc 2.35+/x86_64 is an ABI target, not universal Linux support.
+- 2.1.0 was not installed on the host as part of publication. Host installation is not needed to reproduce the isolated checks.
 
-- No physical RTX 5070/40 testing, game rendering, loaded model/DLL, visual quality, frame pacing or FPS gain.
-- No authenticated Epic game launch. **Epic's game-argument field cannot apply NVIDIA environment variables.** Manual whole-launcher environments remain experimental/session-wide, with propagation unverified.
-- No runtime certification of external launchers, Gamescope, MangoHud, PRIME or HDR; they are not controls in this interface.
-- Native/Proton runtimes, anti-cheat, compositor/display support and game-integrated features remain external requirements.
-- glibc 2.35+/x86_64 is an ABI target, not a claim to support every Linux distribution or compositor.
-
-Reproduce with `python3 tools/build_rootless.py`, then `python3 tools/verify_portable.py`. The latter refuses to overwrite an existing generated verification root; archive that root before repeating. Detailed logs and private build evidence remain in ignored `.cache/` and `build/portable/`; no Epic binary or account data is published.
+Reproduce with `python3 tools/build_rootless.py` and `python3 tools/verify_portable.py`. The verification helper refuses an existing generated root. Public results and screenshots are in this repository; temporary build logs and generated root filesystems are not distribution artifacts.
